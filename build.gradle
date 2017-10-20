@@ -1,0 +1,101 @@
+buildscript {
+    ext {
+        SPRING_BOOT_VERSION = '1.5.6.RELEASE'
+        IGNITE_VERSION = '2.1.0'
+        GRPC_VERSION = '1.6.1' // CURRENT_GRPC_VERSION
+        GRPC_STARTER_VERSION = '2.1.0'
+        LOGBACK_VERSION = '1.2.3'
+    }
+    repositories {
+        mavenCentral()
+        maven { url 'http://repo.spring.io/plugins-release' }
+        maven { url "https://plugins.gradle.org/m2/" }
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${SPRING_BOOT_VERSION}")
+    }
+}
+apply plugin: 'idea'
+apply plugin: 'org.springframework.boot'
+
+version = '0.0.1-SNAPSHOT'
+
+
+repositories {
+    mavenCentral()
+    jcenter()
+    maven { url 'https://jitpack.io' }
+}
+
+configurations.all {
+    resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+}
+
+
+dependencies {
+
+    compile 'com.github.conanchen.easyhan-api:grpc-manage-java:master-SNAPSHOT'
+
+    compile("org.lognet:grpc-spring-boot-starter:$GRPC_STARTER_VERSION") {
+        exclude group: 'org.slf4j', module: 'log4j-over-slf4j'
+    }
+
+    compile("org.springframework.boot:spring-boot-starter:$SPRING_BOOT_VERSION") {
+        force true
+        exclude group: 'org.slf4j', module: 'log4j-over-slf4j'
+    }
+    compile("org.springframework.boot:spring-boot-starter-logging:$SPRING_BOOT_VERSION") {
+        force true
+        exclude group: 'org.slf4j', module: 'log4j-over-slf4j'
+    }
+    compile("org.springframework.boot:spring-boot-starter-web:$SPRING_BOOT_VERSION") {
+        exclude group: 'org.slf4j', module: 'log4j-over-slf4j'
+    }
+    compile("org.springframework.boot:spring-boot-starter-actuator:$SPRING_BOOT_VERSION") {
+        exclude group: 'org.slf4j', module: 'log4j-over-slf4j'
+
+    }
+    compile ("io.projectreactor:reactor-bus")
+    testCompile("org.springframework.boot:spring-boot-starter-test:$SPRING_BOOT_VERSION")
+    testCompile "org.springframework.boot:spring-boot-starter-aop:$SPRING_BOOT_VERSION"
+
+    compile("org.apache.ignite:ignite-core:$IGNITE_VERSION")
+    compile "org.apache.ignite:ignite-spring:$IGNITE_VERSION"
+    compile "org.apache.ignite:ignite-spring-data:$IGNITE_VERSION"
+    compile "org.apache.ignite:ignite-indexing:$IGNITE_VERSION"
+    compile("org.apache.ignite:ignite-rest-http:$IGNITE_VERSION") {
+        exclude group: 'org.eclipse.jetty'
+    }
+
+    compile "org.eclipse.jetty:jetty-continuation:9.2.11.v20150529"
+    compile "org.eclipse.jetty:jetty-http:9.2.11.v20150529"
+    compile "org.eclipse.jetty:jetty-io:9.2.11.v20150529"
+    compile "org.eclipse.jetty:jetty-server:9.2.11.v20150529"
+    compile "org.eclipse.jetty:jetty-util:9.2.11.v20150529"
+    compile "org.eclipse.jetty:jetty-xml:9.2.11.v20150529"
+
+    compile "com.h2database:h2:1.4.195"
+
+    testCompile "io.grpc:grpc-testing:${GRPC_VERSION}"
+    testCompile "junit:junit:4.12"
+//	testCompile "org.mockito:mockito-core:2.8.47"
+
+    compile "org.projectlombok:lombok:1.16.6"
+    compile group: 'commons-validator', name: 'commons-validator', version: '1.6'
+}
+
+idea {
+    module {
+    }
+}
+
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.boot:spring-boot-starter-parent:${SPRING_BOOT_VERSION}"
+    }
+}
+
+project.logger.lifecycle("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+project.logger.lifecycle("~~~~~~~~~~~~~~BUILDING HIASK-CLOUD-SEXYIMAGE~~~~~~~~~~~~~~~~~");
+project.logger.lifecycle("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
