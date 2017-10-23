@@ -1,6 +1,7 @@
 package org.ditto.easyhan.repository;
 
 import org.apache.ignite.Ignite;
+import org.apache.ignite.IgniteCache;
 import org.apache.ignite.Ignition;
 import org.apache.ignite.configuration.CacheConfiguration;
 import org.apache.ignite.configuration.IgniteConfiguration;
@@ -8,9 +9,7 @@ import org.apache.ignite.configuration.PersistentStoreConfiguration;
 import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi;
 import org.apache.ignite.spi.discovery.tcp.ipfinder.multicast.TcpDiscoveryMulticastIpFinder;
 import org.apache.ignite.springdata.repository.config.EnableIgniteRepositories;
-import org.ditto.easyhan.model.Breed;
-import org.ditto.easyhan.model.Dog;
-import org.ditto.easyhan.model.Word;
+import org.ditto.easyhan.model.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -55,7 +54,6 @@ public class SpringConfig {
         CacheConfiguration<Long, Breed> ccfgBreed = new CacheConfiguration<>("BreedCache");
         CacheConfiguration<String, Word> ccfgWord = new CacheConfiguration<>("ZhwordCache");
 
-        // Setting SQL schema for the cache.
         ccfgWord.setIndexedTypes(String.class, Word.class);
         ccfgBreed.setIndexedTypes(Long.class, Breed.class);
         ccfgDog.setIndexedTypes(Long.class, Dog.class);
@@ -64,7 +62,14 @@ public class SpringConfig {
         ignite.getOrCreateCache(ccfgBreed);
         ignite.getOrCreateCache(ccfgWord);
 
-
+        getOrCreateUserWordCache(ignite);
         return ignite;
+    }
+
+    private IgniteCache<UserWordKey, UserWord> getOrCreateUserWordCache(Ignite ignite) {
+        CacheConfiguration<UserWordKey, UserWord> ccfgUserWord = new CacheConfiguration<>(Constants.USER_WORD_CACHE_NAME);
+        // Setting SQL schema for the cache.
+        ccfgUserWord.setIndexedTypes(UserWordKey.class, UserWord.class);
+        return ignite.getOrCreateCache(ccfgUserWord);
     }
 }
