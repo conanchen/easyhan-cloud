@@ -12,7 +12,7 @@ import java.util.List;
 @RepositoryConfig(cacheName = "ZhwordCache")
 public interface WordRepository extends IgniteRepository<Word, String> {
 
-    @Query("SELECT * FROM Word WHERE level = ? AND lastUpdated > ? ORDER BY lastUpdated ASC")
+    @Query("SELECT * FROM Word WHERE level = ? AND lastUpdated >= ? ORDER BY lastUpdated ASC")
     List<Word> getAllBy(HanziLevel level, long startLastUpdated, Pageable pageable);
 
 }
