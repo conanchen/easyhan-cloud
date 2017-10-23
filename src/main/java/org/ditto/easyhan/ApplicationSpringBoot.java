@@ -1,6 +1,7 @@
 package org.ditto.easyhan;
 
 import org.ditto.easyhan.grpc.GreeterService;
+import org.ditto.easyhan.grpc.MyWordService;
 import org.ditto.easyhan.grpc.WordService;
 import org.ditto.easyhan.service.Publisher;
 import org.ditto.easyhan.service.Receiver;
@@ -27,8 +28,13 @@ public class ApplicationSpringBoot implements CommandLineRunner {
 
 
     @Bean
-    public WordService imageService() {
+    public WordService wordService() {
         return new WordService();
+    }
+
+    @Bean
+    public MyWordService myWordService() {
+        return new MyWordService();
     }
 
     @Bean
