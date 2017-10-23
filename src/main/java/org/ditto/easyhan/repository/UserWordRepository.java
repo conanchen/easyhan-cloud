@@ -12,7 +12,7 @@ import java.util.List;
 @RepositoryConfig(cacheName = Constants.USER_WORD_CACHE_NAME)
 public interface UserWordRepository extends IgniteRepository<UserWord, UserWordKey> {
 
-    @Query("SELECT * FROM UserWord WHERE userId = ? AND lastUpdated >= ? ORDER BY lastUpdated ASC")
+    @Query("SELECT * FROM UserWord WHERE userId = ? AND lastUpdated > ? ORDER BY lastUpdated ASC")
     List<UserWord> getAllBy(String userId, long startLastUpdated, Pageable pageable);
 
 }
