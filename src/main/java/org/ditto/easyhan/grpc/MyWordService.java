@@ -28,7 +28,7 @@ public class MyWordService extends MyWordGrpc.MyWordImplBase {
         logger.info(String.format("list start request=[%s]", gson.toJson(request)));
         List<UserWord> userWordList = userWordRepository.getAllBy(Constants.TEST_USERID, request.getLastUpdated(), new PageRequest(0, 100));
         if (userWordList != null) {
-            logger.info(String.format("ListRequest request=[%s]\n send imageList.size()=%d", gson.toJson(request), userWordList.size()));
+            logger.info(String.format("list send userWordList.size()=%d", userWordList.size()));
             for (UserWord userWord : userWordList) {
 
                 MyWordResponse response = MyWordResponse
@@ -49,12 +49,12 @@ public class MyWordService extends MyWordGrpc.MyWordImplBase {
     @Override
     public void upsert(UpsertRequest request, StreamObserver<UpsertResponse> responseObserver) {
         logger.info(String.format("upsert start request=[%s]", gson.toJson(request)));
-        UserWordKey userWordKey = new UserWordKey(Constants.TEST_USERID,request.getWord());
+        UserWordKey userWordKey = new UserWordKey(Constants.TEST_USERID, request.getWord());
         UserWord userWord = userWordRepository.findOne(userWordKey);
-        if(userWord!=null){
-            userWord.setMemIdx(userWord.getMemIdx()+1);
+        if (userWord != null) {
+            userWord.setMemIdx(userWord.getMemIdx() + 1);
             userWord.setLastUpdated(System.currentTimeMillis());
-        }else{
+        } else {
             userWord = UserWord.builder()
                     .setUserId(Constants.TEST_USERID)
                     .setWord(request.getWord())
@@ -63,7 +63,7 @@ public class MyWordService extends MyWordGrpc.MyWordImplBase {
                     .setLastUpdated(System.currentTimeMillis())
                     .build();
         }
-        userWord = userWordRepository.save(userWordKey,userWord);
+        userWord = userWordRepository.save(userWordKey, userWord);
 
         UpsertResponse upsertResponse = UpsertResponse.newBuilder()
                 .setError(Error.newBuilder().setCode("myword.upsert.ok").build())
