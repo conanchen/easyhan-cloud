@@ -63,6 +63,7 @@ public class WordDataImportRunner implements CommandLineRunner {
                 updateWord(word, level, wps[1], newIdx);
             }
         }
+        log.info(String.format("done save %d words",words.length));
     }
 
     private void updateWord(Word word, HanziLevel level, String pinyin, int newIdx) {

@@ -7,6 +7,7 @@ import org.ditto.easyhan.model.UserWordKey;
 import org.ditto.easyhan.repository.Constants;
 import org.ditto.easyhan.repository.UserWordRepository;
 import org.easyhan.common.grpc.Error;
+import org.easyhan.common.grpc.HanziLevel;
 import org.easyhan.myword.grpc.*;
 import org.lognet.springboot.grpc.GRpcService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,5 +74,55 @@ public class MyWordService extends MyWordGrpc.MyWordImplBase {
         logger.info(String.format("upsert send upsertResponse=[%s]", gson.toJson(upsertResponse)));
         responseObserver.onCompleted();
         logger.info(String.format("upsert end request=[%s]", gson.toJson(request)));
+    }
+
+    @Override
+    public void stats(StatsRequest request, StreamObserver<StatsResponse> responseObserver) {
+        logger.info(String.format("upsert start request=[%s]", gson.toJson(request)));
+        StatsResponse statsResponse = StatsResponse
+                .newBuilder()
+                .setLevel(HanziLevel.ONE)
+                .setNumMemory0(3000)
+                .setNumMemory1(100)
+                .setNumMemory2(200)
+                .setNumMemory3(300)
+                .setNumMemory4(400)
+                .setNumMemory5(500)
+                .setNumMemory6(600)
+                .setNumMemory7(700)
+                .build();
+        responseObserver.onNext(statsResponse);
+        statsResponse = StatsResponse
+                .newBuilder()
+                .setLevel(HanziLevel.TWO)
+                .setNumMemory0(3000)
+                .setNumMemory1(100)
+                .setNumMemory2(200)
+                .setNumMemory3(300)
+                .setNumMemory4(400)
+                .setNumMemory5(500)
+                .setNumMemory6(600)
+                .setNumMemory7(700)
+                .build();
+        responseObserver.onNext(statsResponse);
+        statsResponse = StatsResponse
+                .newBuilder()
+                .setLevel(HanziLevel.THREE)
+                .setNumMemory0(3000)
+                .setNumMemory1(100)
+                .setNumMemory2(200)
+                .setNumMemory3(300)
+                .setNumMemory4(400)
+                .setNumMemory5(500)
+                .setNumMemory6(600)
+                .setNumMemory7(700)
+                .build();
+        responseObserver.onNext(statsResponse);
+        try {
+            Thread.sleep(10);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        responseObserver.onCompleted();
     }
 }
