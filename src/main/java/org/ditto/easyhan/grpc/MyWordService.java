@@ -1,6 +1,7 @@
 package org.ditto.easyhan.grpc;
 
 import com.google.gson.Gson;
+import io.grpc.Context;
 import io.grpc.stub.StreamObserver;
 import org.ditto.easyhan.model.UserWord;
 import org.ditto.easyhan.model.UserWordKey;
@@ -16,7 +17,7 @@ import org.springframework.data.domain.PageRequest;
 import java.util.List;
 import java.util.logging.Logger;
 
-@GRpcService(interceptors = {LogInterceptor.class})
+@GRpcService(interceptors = {MyAuthInterceptor.class, LogInterceptor.class})
 public class MyWordService extends MyWordGrpc.MyWordImplBase {
     private final static Gson gson = new Gson();
     private static final Logger logger = Logger.getLogger(MyWordService.class.getName());
@@ -26,7 +27,13 @@ public class MyWordService extends MyWordGrpc.MyWordImplBase {
 
     @Override
     public void list(ListRequest request, StreamObserver<MyWordResponse> responseObserver) {
-        logger.info(String.format("list start request=[%s]", gson.toJson(request)));
+
+        // Access to identity.
+        UserMe identity = MyAuthInterceptor.USER_IDENTITY.get();
+
+
+        logger.info(String.format("list start identity=%s, request=[%s]", identity, gson.toJson(request)));
+
         List<UserWord> userWordList = userWordRepository.getAllBy(Constants.TEST_USERID, request.getLastUpdated(), new PageRequest(0, 100));
         if (userWordList != null) {
             logger.info(String.format("list send userWordList.size()=%d", userWordList.size()));
