@@ -2,7 +2,7 @@ buildscript {
     ext {
         SPRING_BOOT_VERSION = '1.5.6.RELEASE'
         IGNITE_VERSION = '2.1.0'
-        GRPC_VERSION = '1.6.1' // CURRENT_GRPC_VERSION
+        GRPC_VERSION = '1.7.0' // CURRENT_GRPC_VERSION
         GRPC_STARTER_VERSION = '2.1.0'
         LOGBACK_VERSION = '1.2.3'
     }
@@ -38,7 +38,14 @@ dependencies {
 
     compile("org.lognet:grpc-spring-boot-starter:$GRPC_STARTER_VERSION") {
         exclude group: 'org.slf4j', module: 'log4j-over-slf4j'
+        exclude group: 'io.grpc', module: 'grpc-protobuf'
+        exclude group: 'io.grpc', module: 'grpc-services'
+        exclude group: 'io.grpc', module: 'grpc-netty'
     }
+
+    compile ("io.grpc:grpc-protobuf:$GRPC_VERSION")
+    compile ("io.grpc:grpc-services:$GRPC_VERSION")
+    compile ("io.grpc:grpc-netty:$GRPC_VERSION")
 
     compile("org.springframework.boot:spring-boot-starter:$SPRING_BOOT_VERSION") {
         force true
@@ -75,6 +82,9 @@ dependencies {
     compile "org.eclipse.jetty:jetty-xml:9.2.11.v20150529"
 
     compile "com.h2database:h2:1.4.195"
+
+    compile("org.springframework:spring-web")
+    compile("com.fasterxml.jackson.core:jackson-databind")
 
     testCompile "io.grpc:grpc-testing:${GRPC_VERSION}"
     testCompile "junit:junit:4.12"

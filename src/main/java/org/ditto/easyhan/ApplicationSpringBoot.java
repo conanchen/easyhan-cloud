@@ -4,12 +4,15 @@ import org.ditto.easyhan.grpc.GreeterService;
 import org.ditto.easyhan.grpc.MyWordService;
 import org.ditto.easyhan.grpc.WordService;
 import org.ditto.easyhan.service.Publisher;
+import org.ditto.easyhan.service.QQService;
 import org.ditto.easyhan.service.Receiver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
+import org.springframework.web.client.RestTemplate;
 import reactor.Environment;
 import reactor.bus.EventBus;
 
@@ -26,6 +29,11 @@ public class ApplicationSpringBoot implements CommandLineRunner {
         return new GreeterService();
     }
 
+
+    @Bean
+    public RestTemplate restTemplate(RestTemplateBuilder builder) {
+        return builder.build();
+    }
 
     @Bean
     public WordService wordService() {

@@ -10,6 +10,8 @@ import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi;
 import org.apache.ignite.spi.discovery.tcp.ipfinder.multicast.TcpDiscoveryMulticastIpFinder;
 import org.apache.ignite.springdata.repository.config.EnableIgniteRepositories;
 import org.ditto.easyhan.model.*;
+import org.ditto.easyhan.model.qq.UserQQ;
+import org.ditto.easyhan.model.qq.UserQQKey;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -63,6 +65,8 @@ public class SpringConfig {
         ignite.getOrCreateCache(ccfgWord);
 
         getOrCreateUserWordCache(ignite);
+        getOrCreateUserCache(ignite);
+        getOrCreateUserQQCache(ignite);
         return ignite;
     }
 
@@ -71,5 +75,19 @@ public class SpringConfig {
         // Setting SQL schema for the cache.
         ccfgUserWord.setIndexedTypes(UserWordKey.class, UserWord.class);
         return ignite.getOrCreateCache(ccfgUserWord);
+    }
+
+    private IgniteCache<String, User> getOrCreateUserCache(Ignite ignite) {
+        CacheConfiguration<String, User> ccfg = new CacheConfiguration<>(Constants.USER_CACHE_NAME);
+        // Setting SQL schema for the cache.
+        ccfg.setIndexedTypes(String.class, User.class);
+        return ignite.getOrCreateCache(ccfg);
+    }
+
+    private IgniteCache<UserQQKey, UserQQ> getOrCreateUserQQCache(Ignite ignite) {
+        CacheConfiguration<UserQQKey, UserQQ> ccfg = new CacheConfiguration<>(Constants.USER_QQ_CACHE_NAME);
+        // Setting SQL schema for the cache.
+        ccfg.setIndexedTypes(UserQQKey.class, UserQQ.class);
+        return ignite.getOrCreateCache(ccfg);
     }
 }
