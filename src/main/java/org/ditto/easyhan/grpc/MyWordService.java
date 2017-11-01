@@ -56,6 +56,12 @@ public class MyWordService extends MyWordGrpc.MyWordImplBase {
 
     @Override
     public void upsert(UpsertRequest request, StreamObserver<UpsertResponse> responseObserver) {
+        // Access to identity.
+        UserMe identity = MyAuthInterceptor.USER_IDENTITY.get();
+
+
+        logger.info(String.format("upsert start identity=%s, request=[%s]", identity, gson.toJson(request)));
+
         logger.info(String.format("upsert start request=[%s]", gson.toJson(request)));
         UserWordKey userWordKey = new UserWordKey(Constants.TEST_USERID, request.getWord());
         UserWord userWord = userWordRepository.findOne(userWordKey);

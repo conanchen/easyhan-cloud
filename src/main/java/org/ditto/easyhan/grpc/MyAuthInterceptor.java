@@ -30,10 +30,8 @@ class MyAuthInterceptor implements ServerInterceptor {
             Metadata headers,
             ServerCallHandler<ReqT, RespT> next) {
 
-        Iterable<String> it = headers.getAll(AUTHORIZATION);
-        if (it != null && it.iterator().hasNext()) {
-            logger.info(String.format("authorization=%s", it.iterator().next()));
-        }
+        String it = headers.get(AUTHORIZATION);
+        logger.info(String.format("authorization=%s", it));
         // You need to implement validateIdentity
         UserMe identity = validateIdentity(headers);
         if (identity == null) { // this is optional, depending on your needs
