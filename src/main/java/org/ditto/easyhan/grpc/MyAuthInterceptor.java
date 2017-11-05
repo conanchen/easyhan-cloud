@@ -2,9 +2,15 @@ package org.ditto.easyhan.grpc;
 
 import com.google.gson.Gson;
 import io.grpc.*;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Header;
+import io.jsonwebtoken.Jwt;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.impl.crypto.MacProvider;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import javax.crypto.SecretKey;
 import java.util.logging.Logger;
 
 /**
@@ -17,12 +23,13 @@ class MyAuthInterceptor implements ServerInterceptor {
     private static final Logger logger = Logger.getLogger(MyAuthInterceptor.class.getName());
 
 
-    public static final Context.Key<UserMe> USER_IDENTITY
+    public static final Context.Key<Claims> USER_CLAIMS
             = Context.key("identity"); // "identity" is just for debugging
     private static final Metadata.Key<String> AUTHORIZATION = Metadata.Key.of("authorization",
             Metadata.ASCII_STRING_MARSHALLER);
     private static final Metadata.Key<byte[]> EXTRA_AUTHORIZATION = Metadata.Key.of(
             "Extra-Authorization-bin", Metadata.BINARY_BYTE_MARSHALLER);
+    private static final String AUTHENTICATION_SCHEME = "Bearer";
 
     @Override
     public <ReqT, RespT> ServerCall.Listener<ReqT> interceptCall(
@@ -30,10 +37,8 @@ class MyAuthInterceptor implements ServerInterceptor {
             Metadata headers,
             ServerCallHandler<ReqT, RespT> next) {
 
-        String it = headers.get(AUTHORIZATION);
-        logger.info(String.format("authorization=%s", it));
         // You need to implement validateIdentity
-        UserMe identity = validateIdentity(headers);
+        Claims identity = validateIdentity(headers);
         if (identity == null) { // this is optional, depending on your needs
             // Assume user not authenticated
             call.close(Status.UNAUTHENTICATED.withDescription("some more info"),
@@ -41,11 +46,28 @@ class MyAuthInterceptor implements ServerInterceptor {
             return new ServerCall.Listener() {
             };
         }
-        Context context = Context.current().withValue(USER_IDENTITY, identity);
+        Context context = Context.current().withValue(USER_CLAIMS, identity);
         return Contexts.interceptCall(context, call, headers, next);
     }
 
-    private UserMe validateIdentity(Metadata headers) {
-        return new UserMe("conan");
+    private Claims validateIdentity(Metadata headers) {
+        String authorizationHeader = headers.get(AUTHORIZATION);
+        if (authorizationHeader != null) {
+            // Extract the token from the Authorization header
+            String accessToken = authorizationHeader
+                    .substring(AUTHENTICATION_SCHEME.length()).trim();
+
+            logger.info(String.format("authorization=%s, accessToken=%s", authorizationHeader, accessToken));
+
+            SecretKey secretKey = MacProvider.generateKey();
+            Jwt<Header, Claims> claimsJwt = Jwts.parser().parseClaimsJwt(accessToken);
+            logger.info(String.format("secretKey.algorithm=%s,secretKey.format=%s,secretKey.encoded=%s,jwt1.id=%s",
+                    secretKey.getAlgorithm(),
+                    secretKey.getFormat(), new String(secretKey.getEncoded()), claimsJwt.getBody().getId()));
+            return claimsJwt.getBody();
+
+        }
+
+        return null;
     }
 } 

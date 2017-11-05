@@ -1,11 +1,10 @@
 package org.ditto.easyhan.grpc;
 
 import com.google.gson.Gson;
-import io.grpc.Context;
 import io.grpc.stub.StreamObserver;
+import io.jsonwebtoken.Claims;
 import org.ditto.easyhan.model.UserWord;
 import org.ditto.easyhan.model.UserWordKey;
-import org.ditto.easyhan.repository.Constants;
 import org.ditto.easyhan.repository.UserWordRepository;
 import org.easyhan.common.grpc.Error;
 import org.easyhan.common.grpc.HanziLevel;
@@ -29,12 +28,12 @@ public class MyWordService extends MyWordGrpc.MyWordImplBase {
     public void list(ListRequest request, StreamObserver<MyWordResponse> responseObserver) {
 
         // Access to identity.
-        UserMe identity = MyAuthInterceptor.USER_IDENTITY.get();
+        Claims claims = MyAuthInterceptor.USER_CLAIMS.get();
 
 
-        logger.info(String.format("list start identity=%s, request=[%s]", identity, gson.toJson(request)));
+        logger.info(String.format("list start claims.getId()=%s, request=[%s]", claims.getId(), gson.toJson(request)));
 
-        List<UserWord> userWordList = userWordRepository.getAllBy(Constants.TEST_USERID, request.getLastUpdated(), new PageRequest(0, 100));
+        List<UserWord> userWordList = userWordRepository.getAllBy(claims.getId(), request.getLastUpdated(), new PageRequest(0, 100));
         if (userWordList != null) {
             logger.info(String.format("list send userWordList.size()=%d", userWordList.size()));
             for (UserWord userWord : userWordList) {
@@ -57,20 +56,20 @@ public class MyWordService extends MyWordGrpc.MyWordImplBase {
     @Override
     public void upsert(UpsertRequest request, StreamObserver<UpsertResponse> responseObserver) {
         // Access to identity.
-        UserMe identity = MyAuthInterceptor.USER_IDENTITY.get();
+        Claims claims = MyAuthInterceptor.USER_CLAIMS.get();
 
 
-        logger.info(String.format("upsert start identity=%s, request=[%s]", identity, gson.toJson(request)));
+        logger.info(String.format("upsert start claims.getId()=%s, request=[%s]", claims.getId(), gson.toJson(request)));
 
         logger.info(String.format("upsert start request=[%s]", gson.toJson(request)));
-        UserWordKey userWordKey = new UserWordKey(Constants.TEST_USERID, request.getWord());
+        UserWordKey userWordKey = new UserWordKey(claims.getId(), request.getWord());
         UserWord userWord = userWordRepository.findOne(userWordKey);
         if (userWord != null) {
             userWord.setMemIdx(userWord.getMemIdx() + 1);
             userWord.setLastUpdated(System.currentTimeMillis());
         } else {
             userWord = UserWord.builder()
-                    .setUserId(Constants.TEST_USERID)
+                    .setUserId(claims.getId())
                     .setWord(request.getWord())
                     .setMemIdx(1)
                     .setCreated(System.currentTimeMillis())
@@ -91,7 +90,7 @@ public class MyWordService extends MyWordGrpc.MyWordImplBase {
 
     @Override
     public void stats(StatsRequest request, StreamObserver<StatsResponse> responseObserver) {
-        logger.info(String.format("upsert start request=[%s]", gson.toJson(request)));
+        logger.info(String.format("stats start request=[%s]", gson.toJson(request)));
         StatsResponse statsResponse = StatsResponse
                 .newBuilder()
                 .setLevel(HanziLevel.ONE)
