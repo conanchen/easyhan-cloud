@@ -18,7 +18,11 @@ public class Word implements Serializable {
     @QuerySqlField(index = true)
     private int idx;
     @QuerySqlField
-    private String pinyin;
+    private String pinyin1;
+    @QuerySqlField
+    private String pinyin2;
+    @QuerySqlField
+    private String strokes;
     @QuerySqlField(index = true)
     private HanziLevel level;
     @QuerySqlField
@@ -33,10 +37,12 @@ public class Word implements Serializable {
     }
 
 
-    private Word(String word, int idx, String pinyin, HanziLevel level, long created, long lastUpdated, int visitCount) {
+    private Word(String word, int idx, String pinyin1, String pinyin2, String strokes, HanziLevel level, long created, long lastUpdated, int visitCount) {
         this.word = word;
         this.idx = idx;
-        this.pinyin = pinyin;
+        this.pinyin1 = pinyin1;
+        this.pinyin2 = pinyin2;
+        this.strokes = strokes;
         this.level = level;
         this.created = created;
         this.lastUpdated = lastUpdated;
@@ -50,7 +56,9 @@ public class Word implements Serializable {
     public static final class Builder {
         private String word;
         private int idx;
-        private String pinyin;
+        private String pinyin1;
+        private String pinyin2;
+        private String strokes;
         private HanziLevel level;
         private long created;
         private long lastUpdated;
@@ -71,7 +79,7 @@ public class Word implements Serializable {
             if (!missing.isEmpty()) {
                 throw new IllegalStateException("Missing required properties:" + missing);
             }
-            Word wordObj = new Word(  word, idx, pinyin, level,   created,   lastUpdated,   visitCount);
+            Word wordObj = new Word(  word, idx, pinyin1, pinyin2, strokes, level,   created,   lastUpdated,   visitCount);
             return wordObj;
         }
 
@@ -85,8 +93,18 @@ public class Word implements Serializable {
             return this;
         }
 
-        public Builder setPinyin(String pinyin) {
-            this.pinyin = pinyin;
+        public Builder setPinyin1(String pinyin1) {
+            this.pinyin1 = pinyin1;
+            return this;
+        }
+
+        public Builder setPinyin2(String pinyin2) {
+            this.pinyin2 = pinyin2;
+            return this;
+        }
+
+        public Builder setStrokes(String strokes) {
+            this.strokes = strokes;
             return this;
         }
 

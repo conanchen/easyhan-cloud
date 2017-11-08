@@ -52,7 +52,7 @@ public class WordDataImportRunner implements CommandLineRunner {
             Word word = wordRepository.findOne(wps[0]);
             int newIdx = i + startIdx;
             if (word == null) {
-                saveNewWord(level, wps[0], wps[1], newIdx);
+                saveNewWord(level, wps[0], wps[1], wps[1],"-", newIdx);
                 try {
                     //Ensure every word's lastUpdated different
                     Thread.sleep(1);
@@ -60,33 +60,39 @@ public class WordDataImportRunner implements CommandLineRunner {
                     e.printStackTrace();
                 }
             } else {
-                updateWord(word, level, wps[1], newIdx);
+                updateWord(word, level, wps[1], wps[1], "-",newIdx);
             }
         }
-        log.info(String.format("done save %d words",words.length));
+        log.info(String.format("done save %d words", words.length));
     }
 
-    private void updateWord(Word word, HanziLevel level, String pinyin, int newIdx) {
+    private void updateWord(Word word, HanziLevel level, String pinyin1, String pinyin2, String strokes, int newIdx) {
         if (level.compareTo(word.getLevel()) != 0
                 || newIdx != word.getIdx()
-                || pinyin.compareTo(word.getPinyin()) != 0
+                || pinyin1.compareTo(word.getPinyin1()) != 0
+                || pinyin2.compareTo(word.getPinyin2()) != 0
+                || strokes.compareTo(word.getStrokes()) != 0
                 ) {
-            System.out.println(String.format("upd %04d,%s,%s", newIdx, word.getWord(), pinyin));
+            System.out.println(String.format("upd %04d,%s,%s,%s,%s", newIdx, word.getWord(), pinyin1, pinyin2, strokes));
             word.setLastUpdated(System.currentTimeMillis());
             word.setLevel(level);
             word.setIdx(newIdx);
-            word.setPinyin(pinyin);
+            word.setPinyin1(pinyin1);
+            word.setPinyin2(pinyin2);
+            word.setStrokes(strokes);
             wordRepository.save(word.getWord(), word);
         }
     }
 
-    private void saveNewWord(HanziLevel level, String wordValue, String pinyin, int newIdx) {
+    private void saveNewWord(HanziLevel level, String wordValue, String pinyin1, String pinyin2, String strokes, int newIdx) {
         Word word;
-        System.out.println(String.format("new %04d,%s,%s", newIdx, wordValue, pinyin));
+        System.out.println(String.format("new %04d,%s,%s,%s,%s", newIdx, wordValue, pinyin1, pinyin2, strokes));
         word = Word.builder()
                 .setWord(wordValue)
                 .setIdx(newIdx)
-                .setPinyin(pinyin)
+                .setPinyin1(pinyin1)
+                .setPinyin2(pinyin2)
+                .setStrokes(strokes)
                 .setLevel(level)
                 .setCreated(System.currentTimeMillis())
                 .setLastUpdated(System.currentTimeMillis())
