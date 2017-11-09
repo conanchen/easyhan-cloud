@@ -9,24 +9,20 @@ import java.io.Serializable;
 @Data
 public class User implements Serializable {
     @QuerySqlField(index = true)
-    String userId;
+    UserKey.IDIssuer idIssuer;
+    @QuerySqlField(index = true)
+    String id;
     @QuerySqlField
     String nickname;
-    @QuerySqlField
-    String accessToken;
-    @QuerySqlField
-    long expiresIn;
     @QuerySqlField
     private long created;
     @QuerySqlField
     private long lastUpdated;
 
-
-    public User(String userId, String nickname, String accessToken, long expiresIn, long created, long lastUpdated) {
-        this.userId = userId;
+    public User(UserKey.IDIssuer idIssuer, String id, String nickname, long created, long lastUpdated) {
+        this.idIssuer = idIssuer;
+        this.id = id;
         this.nickname = nickname;
-        this.accessToken = accessToken;
-        this.expiresIn = expiresIn;
         this.created = created;
         this.lastUpdated = lastUpdated;
     }
@@ -36,10 +32,9 @@ public class User implements Serializable {
     }
 
     public static final class Builder {
-        private String userId;
+        private UserKey.IDIssuer idIssuer;
+        private String id;
         private String nickname;
-        private String accessToken;
-        private long expiresIn;
         private long created;
         private long lastUpdated;
 
@@ -48,35 +43,33 @@ public class User implements Serializable {
 
         public User build() {
             String missing = "";
-            if (Strings.isNullOrEmpty(userId)) {
-                missing += " userId";
+            if (idIssuer == null) {
+                missing += " idType";
+            }
+            if (Strings.isNullOrEmpty(id)) {
+                missing += " id";
             }
 
             if (!missing.isEmpty()) {
                 throw new IllegalStateException("Missing required properties:" + missing);
             }
 
-            User user = new User(userId, nickname, accessToken, expiresIn, created, lastUpdated);
+            User user = new User(idIssuer, id, nickname, created, lastUpdated);
             return user;
         }
 
-        public Builder setUserId(String userId) {
-            this.userId = userId;
+        public Builder setIdIssuer(UserKey.IDIssuer idIssuer) {
+            this.idIssuer = idIssuer;
+            return this;
+        }
+
+        public Builder setId(String id) {
+            this.id = id;
             return this;
         }
 
         public Builder setNickname(String nickname) {
             this.nickname = nickname;
-            return this;
-        }
-
-        public Builder setAccessToken(String accessToken) {
-            this.accessToken = accessToken;
-            return this;
-        }
-
-        public Builder setExpiresIn(long expiresIn) {
-            this.expiresIn = expiresIn;
             return this;
         }
 

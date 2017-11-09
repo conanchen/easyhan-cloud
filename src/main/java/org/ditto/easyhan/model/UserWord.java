@@ -51,7 +51,7 @@ public class UserWord implements Serializable {
         public UserWord build() {
             String missing = "";
             if (Strings.isNullOrEmpty(userId)) {
-                missing += " userId";
+                missing += " id";
             }
 
             if (Strings.isNullOrEmpty(word)) {

@@ -10,8 +10,6 @@ import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi;
 import org.apache.ignite.spi.discovery.tcp.ipfinder.multicast.TcpDiscoveryMulticastIpFinder;
 import org.apache.ignite.springdata.repository.config.EnableIgniteRepositories;
 import org.ditto.easyhan.model.*;
-import org.ditto.easyhan.model.qq.UserQQ;
-import org.ditto.easyhan.model.qq.UserQQKey;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -54,20 +52,24 @@ public class SpringConfig {
         // repository.
         CacheConfiguration<Long, Dog> ccfgDog = new CacheConfiguration<>("DogCache");
         CacheConfiguration<Long, Breed> ccfgBreed = new CacheConfiguration<>("BreedCache");
-        CacheConfiguration<String, Word> ccfgWord = new CacheConfiguration<>("ZhwordCache");
 
-        ccfgWord.setIndexedTypes(String.class, Word.class);
         ccfgBreed.setIndexedTypes(Long.class, Breed.class);
         ccfgDog.setIndexedTypes(Long.class, Dog.class);
 
         ignite.getOrCreateCache(ccfgDog);
         ignite.getOrCreateCache(ccfgBreed);
-        ignite.getOrCreateCache(ccfgWord);
 
+        getOrCreateWordCache(ignite);
         getOrCreateUserWordCache(ignite);
         getOrCreateUserCache(ignite);
-        getOrCreateUserQQCache(ignite);
         return ignite;
+    }
+
+    private IgniteCache<String, Word> getOrCreateWordCache(Ignite ignite) {
+        CacheConfiguration<String, Word> ccfgWord = new CacheConfiguration<>(Constants.WORD_CACHE_NAME);
+        // Setting SQL schema for the cache.
+        ccfgWord.setIndexedTypes(String.class, Word.class);
+        return ignite.getOrCreateCache(ccfgWord);
     }
 
     private IgniteCache<UserWordKey, UserWord> getOrCreateUserWordCache(Ignite ignite) {
@@ -77,17 +79,10 @@ public class SpringConfig {
         return ignite.getOrCreateCache(ccfgUserWord);
     }
 
-    private IgniteCache<String, User> getOrCreateUserCache(Ignite ignite) {
-        CacheConfiguration<String, User> ccfg = new CacheConfiguration<>(Constants.USER_CACHE_NAME);
+    private IgniteCache<UserKey, User> getOrCreateUserCache(Ignite ignite) {
+        CacheConfiguration<UserKey, User> ccfg = new CacheConfiguration<>(Constants.USER_CACHE_NAME);
         // Setting SQL schema for the cache.
-        ccfg.setIndexedTypes(String.class, User.class);
-        return ignite.getOrCreateCache(ccfg);
-    }
-
-    private IgniteCache<UserQQKey, UserQQ> getOrCreateUserQQCache(Ignite ignite) {
-        CacheConfiguration<UserQQKey, UserQQ> ccfg = new CacheConfiguration<>(Constants.USER_QQ_CACHE_NAME);
-        // Setting SQL schema for the cache.
-        ccfg.setIndexedTypes(UserQQKey.class, UserQQ.class);
+        ccfg.setIndexedTypes(UserKey.class, User.class);
         return ignite.getOrCreateCache(ccfg);
     }
 }

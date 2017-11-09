@@ -9,11 +9,9 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.impl.DefaultClaims;
 import io.jsonwebtoken.impl.crypto.MacProvider;
 import org.ditto.easyhan.model.User;
+import org.ditto.easyhan.model.UserKey;
 import org.ditto.easyhan.model.qq.QQOpenId;
 import org.ditto.easyhan.model.qq.QQUserInfo;
-import org.ditto.easyhan.model.qq.UserQQ;
-import org.ditto.easyhan.model.qq.UserQQKey;
-import org.ditto.easyhan.repository.UserQQRepository;
 import org.ditto.easyhan.repository.UserRepository;
 import org.ditto.easyhan.service.QQService;
 import org.ditto.sigin.grpc.QQSigninRequest;
@@ -24,7 +22,6 @@ import org.lognet.springboot.grpc.GRpcService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.crypto.SecretKey;
-import java.util.UUID;
 import java.util.logging.Logger;
 
 @GRpcService(interceptors = {LogInterceptor.class})
@@ -37,9 +34,6 @@ public class SigninService extends SigninGrpc.SigninImplBase {
     @Autowired
     private UserRepository userRepository;
 
-    @Autowired
-    private UserQQRepository userQQRepository;
-
 
     @Override
     public void qQSignin(QQSigninRequest request, StreamObserver<SigninResponse> responseObserver) {
@@ -47,17 +41,14 @@ public class SigninService extends SigninGrpc.SigninImplBase {
 
         QQOpenId qqOpenId = qqService.getOpenId(request.getAccessToken());
         if (qqOpenId != null) {
-            User user = null;
-            UserQQ userQQ = userQQRepository.findOne(new UserQQKey(qqOpenId.openid));
-            if (userQQ == null) {
-                QQUserInfo qqUserInfo = qqService.getQQUserInfo(request.getAccessToken());
-                user = newRegistrationUserWithQQ(qqOpenId, qqUserInfo);
-            } else {
-                user = userRepository.findOne(userQQ.getUserId());
+            User user = userRepository.findOne(new UserKey(UserKey.IDIssuer.QQ, qqOpenId.openid));
+            if (user == null) {
+                user = newRegistrationUserWithQQ(qqOpenId);
             }
             if (user != null) {
                 Claims claims = new DefaultClaims()
-                        .setId(user.getUserId())
+                        .setIssuer(UserKey.IDIssuer.QQ.name())
+                        .setId(user.getId())
                         .setSubject(user.getNickname());
 //                        .setExpiration(new Date(System.currentTimeMillis() + 30 * 24 * 60 * 60 * 1000));
                 SecretKey secretKey = MacProvider.generateKey();
@@ -73,7 +64,7 @@ public class SigninService extends SigninGrpc.SigninImplBase {
                                 .setCode("user.signin.ok")
                                 .build())
                         .setAccessToken(jwt)
-                        .setExpiresIn(String.format("%d", user.getExpiresIn()))
+                        .setExpiresIn(String.format("%d", -1))
                         .build();
             }
         }
@@ -86,41 +77,32 @@ public class SigninService extends SigninGrpc.SigninImplBase {
                             .setCode("user.signin.error")
                             .build())
                     .build();
+        } else {
+            updateUserInfoWithQQ(qqOpenId.openid,request.getAccessToken());
         }
         responseObserver.onNext(signinResponse);
         responseObserver.onCompleted();
     }
 
-    private User newRegistrationUserWithQQ(QQOpenId qqOpenId, QQUserInfo qqUserInfo) {
-        String userId = UUID.randomUUID().toString();
-        UserQQKey userQQKey = new UserQQKey(qqOpenId.openid);
-        UserQQ userQQ = userQQRepository.findOne(userQQKey);
-        if (userQQ == null) {
-            userQQ = userQQRepository.save(userQQKey, UserQQ
-                    .builder()
-                    .setUserId(userId)
-                    .setClient_id(qqOpenId.client_id)
-                    .setOpenid(qqOpenId.openid)
-                    .setNickname(qqUserInfo.nickname)
-                    .setCity(qqUserInfo.city)
-                    .setProvince(qqUserInfo.province)
-                    .setCreated(System.currentTimeMillis())
-                    .setLastUpdated(System.currentTimeMillis())
-                    .build());
-        }
-        if (userQQ != null) {
-            User user = userRepository.save(userId, User
-                    .builder()
-                    .setUserId(userId)
-                    .setNickname(userQQ.getNickname())
-                    .setCreated(System.currentTimeMillis())
-                    .setLastUpdated(System.currentTimeMillis())
-                    .setAccessToken(UUID.randomUUID().toString())
-                    .setExpiresIn(-1)
-                    .build());
-            return user;
-        }
-        return null;
+    private void updateUserInfoWithQQ(String openid,String qqAccessToken) {
+        QQUserInfo qqUserInfo = qqService.getQQUserInfo(qqAccessToken);
+        UserKey userKey = new UserKey(UserKey.IDIssuer.QQ, openid);
+        User user = userRepository.findOne(userKey);
+        user.setNickname(qqUserInfo.nickname);
+        userRepository.save(userKey,user);
+    }
+
+    private User newRegistrationUserWithQQ(QQOpenId qqOpenId) {
+        return userRepository.save(
+                new UserKey(
+                        UserKey.IDIssuer.QQ, qqOpenId.openid),
+                User.builder()
+                        .setIdIssuer(UserKey.IDIssuer.QQ)
+                        .setId(qqOpenId.openid)
+                        .setCreated(System.currentTimeMillis())
+                        .setLastUpdated(System.currentTimeMillis())
+                        .build()
+        );
     }
 
 }

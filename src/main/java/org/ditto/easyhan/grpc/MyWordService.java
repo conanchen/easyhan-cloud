@@ -31,9 +31,9 @@ public class MyWordService extends MyWordGrpc.MyWordImplBase {
         Claims claims = MyAuthInterceptor.USER_CLAIMS.get();
 
 
-        logger.info(String.format("list start claims.getId()=%s, request=[%s]", claims.getId(), gson.toJson(request)));
+        logger.info(String.format("list start claims.getIssuer()=%s, claims.getId()=%s, request=[%s]", claims.getIssuer(),claims.getId(), gson.toJson(request)));
 
-        List<UserWord> userWordList = userWordRepository.getAllBy(claims.getId(), request.getLastUpdated(), new PageRequest(0, 100));
+        List<UserWord> userWordList = userWordRepository.getAllBy(getUserIdForUserWord(claims), request.getLastUpdated(), new PageRequest(0, 100));
         if (userWordList != null) {
             logger.info(String.format("list send userWordList.size()=%d", userWordList.size()));
             for (UserWord userWord : userWordList) {
@@ -53,16 +53,19 @@ public class MyWordService extends MyWordGrpc.MyWordImplBase {
         }
     }
 
+    private String getUserIdForUserWord(Claims claims){
+        return String.format("%s.%s",claims.getIssuer(),claims.getId());
+    }
     @Override
     public void upsert(UpsertRequest request, StreamObserver<UpsertResponse> responseObserver) {
         // Access to identity.
         Claims claims = MyAuthInterceptor.USER_CLAIMS.get();
 
 
-        logger.info(String.format("upsert start claims.getId()=%s, request=[%s]", claims.getId(), gson.toJson(request)));
+        logger.info(String.format("upsert start claims.getIssuer()=%s, claims.getId()=%s, request=[%s]", claims.getIssuer(),claims.getId(), gson.toJson(request)));
 
         logger.info(String.format("upsert start request=[%s]", gson.toJson(request)));
-        UserWordKey userWordKey = new UserWordKey(claims.getId(), request.getWord());
+        UserWordKey userWordKey = new UserWordKey(getUserIdForUserWord(claims), request.getWord());
         UserWord userWord = userWordRepository.findOne(userWordKey);
         if (userWord != null) {
             userWord.setMemIdx(userWord.getMemIdx() + 1);
