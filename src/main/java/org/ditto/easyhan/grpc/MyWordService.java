@@ -65,14 +65,15 @@ public class MyWordService extends MyWordGrpc.MyWordImplBase {
         logger.info(String.format("upsert start claims.getIssuer()=%s, claims.getId()=%s, request=[%s]", claims.getIssuer(),claims.getId(), gson.toJson(request)));
 
         logger.info(String.format("upsert start request=[%s]", gson.toJson(request)));
-        UserWordKey userWordKey = new UserWordKey(getUserIdForUserWord(claims), request.getWord());
+        String userId = getUserIdForUserWord(claims);
+        UserWordKey userWordKey = new UserWordKey(userId, request.getWord());
         UserWord userWord = userWordRepository.findOne(userWordKey);
         if (userWord != null) {
-            userWord.setMemIdx(userWord.getMemIdx() + 1);
+            userWord.setMemIdx(userWord.getMemIdx() + request.getProgressStep());
             userWord.setLastUpdated(System.currentTimeMillis());
         } else {
             userWord = UserWord.builder()
-                    .setUserId(claims.getId())
+                    .setUserId(userId)
                     .setWord(request.getWord())
                     .setMemIdx(1)
                     .setCreated(System.currentTimeMillis())
