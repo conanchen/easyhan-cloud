@@ -9,7 +9,7 @@ import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
-@RepositoryConfig(cacheName = "ZhwordCache")
+@RepositoryConfig(cacheName = Constants.WORD_CACHE_NAME)
 public interface WordRepository extends IgniteRepository<Word, String> {
 
     @Query("SELECT * FROM Word WHERE level = ? AND lastUpdated >= ? ORDER BY lastUpdated ASC")

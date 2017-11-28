@@ -93,6 +93,9 @@ dependencies {
     compile "org.projectlombok:lombok:1.16.6"
     compile group: 'commons-validator', name: 'commons-validator', version: '1.6'
     compile 'io.jsonwebtoken:jjwt:0.9.0'
+
+    // https://mvnrepository.com/artifact/org.jsoup/jsoup
+    compile group: 'org.jsoup', name: 'jsoup', version: '1.11.2'
 }
 
 idea {
