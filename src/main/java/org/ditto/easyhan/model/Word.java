@@ -3,7 +3,6 @@ package org.ditto.easyhan.model;
 import com.google.common.base.Strings;
 import lombok.Data;
 import org.apache.ignite.cache.query.annotations.QuerySqlField;
-import org.ditto.easyhan.grpc.WordBaidu;
 import org.easyhan.common.grpc.HanziLevel;
 
 import java.io.Serializable;
@@ -41,6 +40,8 @@ public class Word implements Serializable {
     @QuerySqlField
     private List<String> strokes;
     @QuerySqlField
+    private List<String> strokenames;
+    @QuerySqlField
     private int strokes_count;
     @QuerySqlField
     private String basemean;
@@ -54,11 +55,15 @@ public class Word implements Serializable {
     private String fanyi;
     @QuerySqlField
     private String bishun;
+    @QuerySqlField
+    private Boolean defined;
+
 
     public Word() {
     }
 
-    private Word(String word, HanziLevel level, int levelIdx, long created, long lastUpdated, int visitCount, List<Pinyin> pinyins, String radical, String wuxing, String traditional, String wubi, List<String> strokes, Integer strokes_count, String basemean, String detailmean, List<String> terms, List<String> riddles, String fanyi, String bishun) {
+
+    public Word(String word, HanziLevel level, int levelIdx, long created, long lastUpdated, int visitCount, List<Pinyin> pinyins, String radical, String wuxing, String traditional, String wubi, List<String> strokes, List<String> strokenames, int strokes_count, String basemean, String detailmean, List<String> terms, List<String> riddles, String fanyi, String bishun, Boolean defined) {
         this.word = word;
         this.level = level;
         this.levelIdx = levelIdx;
@@ -71,6 +76,7 @@ public class Word implements Serializable {
         this.traditional = traditional;
         this.wubi = wubi;
         this.strokes = strokes;
+        this.strokenames = strokenames;
         this.strokes_count = strokes_count;
         this.basemean = basemean;
         this.detailmean = detailmean;
@@ -78,6 +84,7 @@ public class Word implements Serializable {
         this.riddles = riddles;
         this.fanyi = fanyi;
         this.bishun = bishun;
+        this.defined = defined;
     }
 
     public static Builder builder() {
@@ -98,6 +105,7 @@ public class Word implements Serializable {
         private String traditional;
         private String wubi;
         private List<String> strokes;
+        private List<String> strokenames;
         private int strokes_count;
         private String basemean;
         private String detailmean;
@@ -105,6 +113,7 @@ public class Word implements Serializable {
         private List<String> riddles;
         private String fanyi;
         private String bishun;
+        private Boolean defined;
 
         Builder() {
         }
@@ -123,7 +132,7 @@ public class Word implements Serializable {
             }
             Word wordObj = new Word(word, level, levelIdx, created, lastUpdated, visitCount,
                     pinyins, radical, wuxing, traditional, wubi,
-                    strokes, strokes_count, basemean, detailmean, terms, riddles, fanyi, bishun);
+                    strokes,strokenames, strokes_count, basemean, detailmean, terms, riddles, fanyi, bishun,defined);
             return wordObj;
         }
 
@@ -219,6 +228,16 @@ public class Word implements Serializable {
 
         public Builder setBishun(String bishun) {
             this.bishun = bishun;
+            return this;
+        }
+
+        public Builder setStrokenames(List<String> strokenames) {
+            this.strokenames = strokenames;
+            return this;
+        }
+
+        public Builder setDefined(Boolean defined) {
+            this.defined = defined;
             return this;
         }
     }

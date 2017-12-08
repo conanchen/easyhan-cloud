@@ -11,7 +11,8 @@ import java.util.List;
  */
 
 @JsonPropertyOrder(value = {"word", "pinyins", "radical", "wuxing",
-        "traditional", "wubi", "strokes", "strokes_count", "basemean", "detailmean", "terms", "riddles", "fanyi","bishun"})
+        "traditional", "wubi", "strokes", "strokenames", "strokes_count", "basemean", "detailmean", "terms", "riddles", "fanyi",
+        "bishun","html"})
 public class WordBaidu {
     public String word;
     public List<Pinyin> pinyins;
@@ -20,6 +21,7 @@ public class WordBaidu {
     public String traditional ;
     public String wubi ;
     public List<String> strokes;
+    public List<String> strokenames;
     public Integer strokes_count;
     public String basemean ;
     public String detailmean ;
@@ -27,6 +29,7 @@ public class WordBaidu {
     public List<String> riddles;
     public String fanyi;
     public String bishun;
+    public String html;
 
 
 

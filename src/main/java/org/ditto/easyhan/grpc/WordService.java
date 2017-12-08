@@ -2,9 +2,9 @@ package org.ditto.easyhan.grpc;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Utf8;
 import com.google.gson.Gson;
 import io.grpc.stub.StreamObserver;
-import org.apache.commons.collections.ListUtils;
 import org.apache.commons.lang.StringUtils;
 import org.ditto.easyhan.model.Pinyin;
 import org.ditto.easyhan.model.Word;
@@ -25,6 +25,7 @@ import org.springframework.data.domain.PageRequest;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -63,7 +64,7 @@ public class WordService extends WordGrpc.WordImplBase {
                         .setWuxing(StringUtils.defaultIfEmpty(word.getWuxing(), ""))
                         .setTraditional(StringUtils.defaultIfEmpty(word.getTraditional(), ""))
                         .setWubi(StringUtils.defaultIfEmpty(word.getWubi(), ""))
-                        .addAllStrokes15(word.getStrokes() == null ? new ArrayList() : word.getStrokes())
+                        .addAllStrokes15(word.getStrokenames() == null ? new ArrayList() : word.getStrokenames())
                         .setStrokesCount16(word.getStrokes_count())
                         .setBasemean(StringUtils.defaultIfEmpty(word.getBasemean(), ""))
                         .setDetailmean(StringUtils.defaultIfEmpty(word.getDetailmean(), ""))
@@ -93,23 +94,35 @@ public class WordService extends WordGrpc.WordImplBase {
         wordBaidu.wuxing = wuxing(doc);
         wordBaidu.traditional = traditional(doc);
         wordBaidu.wubi = wubi(doc);
-        wordBaidu.strokes = stroke(doc);
-        wordBaidu.strokes_count = wordBaidu.strokes.size();
+        wordBaidu.strokes = strokes(doc);
+        wordBaidu.strokenames = strokenames(doc);
+        wordBaidu.strokes_count = wordBaidu.strokenames.size();
         wordBaidu.basemean = basemean(doc);
         wordBaidu.detailmean = detailmean(doc);
         wordBaidu.terms = term(doc);
         wordBaidu.riddles = riddle(doc);
         wordBaidu.fanyi = fanyi(doc);
         wordBaidu.bishun = word_bishun(doc);
+        wordBaidu.html = html;
 
-        upsertWordWithBaidu(request.getWord(), wordBaidu);
+        Word wordObj = upsertWordWithBaidu(request.getWord(), wordBaidu);
 
         try {
-            mapper.writerWithDefaultPrettyPrinter()
-                    .writeValue(new File(getWordFileName(wordBaidu.word)), wordBaidu);
-            StatusResponse statusResponse = StatusResponse.newBuilder().setError(Error.newBuilder().setCode("update.fromhtml.ok").setDetails("update word detail from html").build()).build();
+//            mapper.writerWithDefaultPrettyPrinter()
+//                    .writeValue();
+            String fn = getWordFileName(wordObj);
+            org.apache.commons.io.FileUtils.writeStringToFile(new File(fn), html, StandardCharsets.UTF_8);
+            StatusResponse statusResponse = StatusResponse
+                    .newBuilder()
+                    .setError(Error.newBuilder()
+                            .setCode("update.fromhtml.ok")
+                            .setDetails("update word detail from html")
+                            .build())
+                    .build();
             responseObserver.onNext(statusResponse);
-            logger.info(String.format("update end wordBaidu=[%s],statusResponse=%s", gson.toJson(wordBaidu), gson.toJson(statusResponse)));
+            logger.info(String.format("update end save file=%s wordBaidu=[%s],statusResponse=%s", fn,gson.toJson
+                            (wordBaidu),
+                    gson.toJson(statusResponse)));
         } catch (JsonProcessingException e) {
             e.printStackTrace();
 
@@ -120,7 +133,7 @@ public class WordService extends WordGrpc.WordImplBase {
 
     }
 
-    public void upsertWordWithBaidu(String word, WordBaidu wordBaidu) {
+    public Word upsertWordWithBaidu(String word, WordBaidu wordBaidu) {
         Word wordObj = wordRepository.findOne(word);
 
         if (wordObj != null) {
@@ -137,7 +150,7 @@ public class WordService extends WordGrpc.WordImplBase {
                     .setWuxing(wordBaidu.wuxing)
                     .setTraditional(wordBaidu.traditional)
                     .setWubi(wordBaidu.wubi)
-                    .setStrokes(wordBaidu.strokes)
+                    .setStrokes(wordBaidu.strokenames)
                     .setStrokes_count(wordBaidu.strokes_count)
                     .setBasemean(wordBaidu.basemean)
                     .setDetailmean(wordBaidu.detailmean)
@@ -147,20 +160,16 @@ public class WordService extends WordGrpc.WordImplBase {
                     .setBishun(wordBaidu.bishun)
 
                     .build();
-            wordRepository.save(word, w);
+            wordObj = wordRepository.save(word, w);
         }
+        return wordObj;
     }
 
 
-    private String getWordFileName(String word) {
-        StringBuffer sb = new StringBuffer();
-        for (int i = 0; i < word.length(); i++) {
-            char c = word.charAt(i);
-            sb.append("u" + Integer.toHexString(c));
-        }
-        return
-                String.format("/Users/mellychen/hiask/easyhan-cloud/src/main/resources/words/%s.json",
-                        sb.toString());
+    private String getWordFileName(Word wordObj) {
+         return
+                String.format("/Users/mellychen/hiask/easyhan-cloud/src/main/resources/words/%x.html",
+                        wordObj.getWord().codePointAt(0));
     }
 
     private List<Pinyin> tone_py(Document doc) {
@@ -244,7 +253,29 @@ public class WordService extends WordGrpc.WordImplBase {
     }
 
 
-    private List<String> stroke(Document doc) {
+    private List<String> strokes(Document doc) {
+        List<String> result = new ArrayList<>();
+        try {
+            String strokes = doc.getElementsMatchingOwnText("笔顺 ：").get(0).parent().childNode(1).outerHtml();
+//            String strokes = doc.getElementById("strokenames").childNode(1).outerHtml();
+            String[] strokeArr = StringUtils.splitByWholeSeparator(StringUtils.remove(strokes, "&nbsp;").trim(), " ");
+            for (int j = 0; j < strokeArr.length; j++) {
+                if (StringUtils.isNotEmpty(strokeArr[j])) {
+                    result.add(StringUtils.trim(strokeArr[j]));
+                }
+            }
+            logger.info(String.format("strokes=%s", gson.toJson(result)));
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+
+        }
+
+        return result;
+    }
+
+
+    private List<String> strokenames(Document doc) {
         List<String> result = new ArrayList<>();
         try {
             String strokes = doc.getElementById("stroke").childNode(1).outerHtml();
@@ -254,7 +285,7 @@ public class WordService extends WordGrpc.WordImplBase {
                     result.add(StringUtils.trim(strokeArr[j]));
                 }
             }
-            logger.info(String.format("stroke=%s", gson.toJson(result)));
+            logger.info(String.format("strokenames=%s", gson.toJson(result)));
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
@@ -355,6 +386,5 @@ public class WordService extends WordGrpc.WordImplBase {
 
         return result;
     }
-
 
 }
