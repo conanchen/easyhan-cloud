@@ -57,13 +57,16 @@ public class Word implements Serializable {
     private String bishun;
     @QuerySqlField
     private Boolean defined;
+    @QuerySqlField
+    private long defineCreated;
 
 
     public Word() {
     }
 
 
-    public Word(String word, HanziLevel level, int levelIdx, long created, long lastUpdated, int visitCount, List<Pinyin> pinyins, String radical, String wuxing, String traditional, String wubi, List<String> strokes, List<String> strokenames, int strokes_count, String basemean, String detailmean, List<String> terms, List<String> riddles, String fanyi, String bishun, Boolean defined) {
+    public Word(String word, HanziLevel level, int levelIdx, long created, long lastUpdated, int visitCount, List<Pinyin> pinyins, String radical, String wuxing, String traditional, String wubi, List<String> strokes, List<String> strokenames, int strokes_count, String basemean, String detailmean, List<String> terms, List<String> riddles, String fanyi, String bishun, Boolean defined,
+                long defineCreated) {
         this.word = word;
         this.level = level;
         this.levelIdx = levelIdx;
@@ -85,6 +88,7 @@ public class Word implements Serializable {
         this.fanyi = fanyi;
         this.bishun = bishun;
         this.defined = defined;
+        this.defineCreated = defineCreated;
     }
 
     public static Builder builder() {
@@ -114,6 +118,7 @@ public class Word implements Serializable {
         private String fanyi;
         private String bishun;
         private Boolean defined;
+        private long defineCreated;
 
         Builder() {
         }
@@ -132,7 +137,7 @@ public class Word implements Serializable {
             }
             Word wordObj = new Word(word, level, levelIdx, created, lastUpdated, visitCount,
                     pinyins, radical, wuxing, traditional, wubi,
-                    strokes,strokenames, strokes_count, basemean, detailmean, terms, riddles, fanyi, bishun,defined);
+                    strokes,strokenames, strokes_count, basemean, detailmean, terms, riddles, fanyi, bishun,defined,defineCreated);
             return wordObj;
         }
 
@@ -238,6 +243,11 @@ public class Word implements Serializable {
 
         public Builder setDefined(Boolean defined) {
             this.defined = defined;
+            return this;
+        }
+
+        public Builder setDefineCreated(long defineCreated) {
+            this.defineCreated = defineCreated;
             return this;
         }
     }

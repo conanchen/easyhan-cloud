@@ -23,12 +23,12 @@ public class Checker {
         String[] words2 = StringUtils.splitByWholeSeparator(HanZi.LEVEL2, ",");
         String[] words3 = StringUtils.splitByWholeSeparator(HanZi.LEVEL3, ",");
         int start1Idx = 1;
-        int start2Idx = words1.length+1;
-        int start3Idx = words1.length+words2.length+1;
+        int start2Idx = words1.length + 1;
+        int start3Idx = words1.length + words2.length + 1;
 
-        checkBaiduWordFiles(words1,start1Idx);
-        checkBaiduWordFiles(words2,start2Idx);
-        checkBaiduWordFiles(words3,start3Idx);
+        checkBaiduWordFiles(words1, start1Idx);
+        checkBaiduWordFiles(words2, start2Idx);
+        checkBaiduWordFiles(words3, start3Idx);
     }
 
     private static void exerciseCodePoint() {
@@ -80,22 +80,7 @@ public class Checker {
     }
 
 
-    public static void checkFiles() {
-        String filename = "/Users/mellychen/hiask/easyhan-cloud/src/main/resources/words/temp.txt";
-
-        Collection<File> files = FileUtils.listFiles(new File("/Users/mellychen/hiask/easyhan-cloud/src/main/resources/words/"), new String[]{"html"}, false);
-//            List<String> lines = FileUtils.readLines(new File(filename), StandardCharsets.UTF_8);
-        java.util.Iterator<File> fileIterator = files.iterator();
-        for (int i = 0; i < files.size(); i++) {
-            if (!fileIterator.next().getName().startsWith(String.format("%04d", i + 1))) {
-                System.out.println(String.format("missing %04d", i + 1));
-                break;
-            }
-        }
-    }
-
-
-    public static void checkBaiduWordFiles(String[] words,int startIdx) {
+    public static void checkBaiduWordFiles(String[] words, int startIdx) {
 
         for (int i = 0; i < words.length; i++) {
             int cp = words[i].codePointAt(0);
@@ -109,11 +94,26 @@ public class Checker {
                     //百度收录了这个汉字
 //                    System.out.println(String.format("✔ %d 百度收录了汉字=%s fn=%s", i+startIdx, words[i],fn));
                 } else {
-                    System.out.println(String.format("✕ %d 百度没收录汉字=%s fn=%s", i+startIdx, words[i],fn));
+                    String fn_ = String.format("/Users/mellychen/hiask/easyhan-cloud/src/main/resources/words_/%x.html",
+                            cp);
+                    try {
+                        String html_ = FileUtils.readFileToString(new File(fn_), StandardCharsets.UTF_8);
+                        System.out.println(String.format("✕ %d 百度没收录汉字=%s manually defined fn_=%s", i + startIdx,
+                                words[i],
+                                fn));
+                    } catch (FileNotFoundException fe_) {
+                        try {
+                            FileUtils.writeStringToFile(new File(fn_), html, StandardCharsets.UTF_8);
+                        } catch (IOException e_) {
+                            e_.printStackTrace();
+                        }
+                    } catch (IOException e1) {
+                        e1.printStackTrace();
+                    }
                 }
 
             } catch (FileNotFoundException fe) {
-                System.out.println(String.format("✕ %d 没有保存汉字=%s fn=%s", i+startIdx, words[i],fn));
+                System.out.println(String.format("✕ %d 没有保存汉字=%s fn=%s", i + startIdx, words[i], fn));
             } catch (IOException e) {
                 e.printStackTrace();
             }
