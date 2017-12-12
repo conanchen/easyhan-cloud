@@ -29,6 +29,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -59,6 +60,10 @@ public class WordDataImportRunner implements CommandLineRunner {
         log.info(String.format("End   SexyImageDataImportRunner 服务启动执行，执行Image数据导入\n " +
                 "oneSize=%d,twoSize=%d,threeSize=%d", oneSize, twoSize, threeSize));
 
+//        checkStrokeDefinitions();
+//        checkWordStrokNameDefined(HanZi.LEVEL1);
+//        checkWordStrokNameDefined(HanZi.LEVEL2);
+//        checkWordStrokNameDefined(HanZi.LEVEL3);
 
     }
 
@@ -155,7 +160,8 @@ public class WordDataImportRunner implements CommandLineRunner {
                                 .setWuxing(wordBaidu.wuxing)
                                 .setTraditional(wordBaidu.traditional)
                                 .setWubi(wordBaidu.wubi)
-                                .setStrokes(wordBaidu.strokenames)
+                                .setStrokes(wordBaidu.strokes)
+                                .setStrokenames(wordBaidu.strokenames)
                                 .setStrokes_count(wordBaidu.strokes_count)
                                 .setBasemean(wordBaidu.basemean)
                                 .setDetailmean(wordBaidu.detailmean)
@@ -288,10 +294,14 @@ public class WordDataImportRunner implements CommandLineRunner {
         List<String> result = new ArrayList<>();
         try {
             String strokes = doc.getElementById("stroke").childNode(1).outerHtml();
-            String[] strokeArr = StringUtils.splitByWholeSeparator(StringUtils.remove(strokes, '\u00a0').trim(), "、");
-            for (int j = 0; j < strokeArr.length; j++) {
-                if (StringUtils.isNotEmpty(strokeArr[j])) {
-                    result.add(StringUtils.trim(strokeArr[j]));
+            String[] strokenameArr = StringUtils.splitByWholeSeparator(StringUtils.remove(strokes, "\u00a0 ").trim(), "、");
+            for (int j = 0; j < strokenameArr.length; j++) {
+                String s = StringUtils.trim(strokenameArr[j]);
+                if (StringUtils.isNotEmpty(s)) {
+                    result.add(s);
+                    if (!isValidStrokeName(s)) {
+                        logger.warning(String.format("unknown strokename=%s", s));
+                    }
                 }
             }
 //            logger.info(String.format("strokenames=%s", gson.toJson(result)));
@@ -302,6 +312,22 @@ public class WordDataImportRunner implements CommandLineRunner {
         }
 
         return result;
+    }
+
+    private boolean isValidStrokeName(String s) {
+        boolean valid = false;
+        if (StringUtils.isNotEmpty(s)) {
+            String[] names = StringUtils.splitByWholeSeparator(s, "/");
+
+            for (int i = 0; i < names.length; i++) {
+                String[] definition = HanZi.STROKE_NAMES.get(names[i]);
+                if (definition != null) {
+                    valid = true;
+                    break;
+                }
+            }
+        }
+        return valid;
     }
 
 
@@ -396,4 +422,63 @@ public class WordDataImportRunner implements CommandLineRunner {
         return result;
     }
 
+    private void checkStrokeDefinitions() {
+        Iterator<String> nameIterator = HanZi.STROKE_NAMES.keySet().iterator();
+        while (nameIterator.hasNext()) {
+            String name = nameIterator.next();
+            if (!foundStrokeNameUsage(name, HanZi.LEVEL1)
+                    && !foundStrokeNameUsage(name, HanZi.LEVEL2)
+                    && !foundStrokeNameUsage(name, HanZi.LEVEL3)) {
+                logger.info(String.format("not found stroke %s in use", name));
+            }
+        }
+    }
+
+    private boolean foundStrokeNameUsage(String name, String wordStr) {
+        boolean found = false;
+        String[] words = StringUtils.splitByWholeSeparator(wordStr, ",");
+        for (int i = 0; i < words.length; i++) {
+            Word word = wordRepository.findOne(words[i]);
+            List<String> strokeNames = word.getStrokenames();
+            if (strokeNames != null) {
+                Iterator<String> iterator = strokeNames.iterator();
+                while (iterator.hasNext()) {
+                    String[] namesArr = StringUtils.splitByWholeSeparator(iterator.next(), "/");
+                    for (int j = 0; j < namesArr.length; j++) {
+                        if (name.compareToIgnoreCase(namesArr[j]) == 0) {
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (found) {
+                        break;
+                    }
+                }
+            }
+            if (found) {
+                break;
+            }
+        }
+        return found;
+    }
+
+    private void checkWordStrokNameDefined(String wordStr) {
+        String[] words = StringUtils.splitByWholeSeparator(wordStr, ",");
+        for (int i = 0; i < words.length; i++) {
+            Word word = wordRepository.findOne(words[i]);
+            List<String> strokeNames = word.getStrokenames();
+            if (strokeNames != null) {
+                Iterator<String> iterator = strokeNames.iterator();
+                while (iterator.hasNext()) {
+                    String name = iterator.next();
+                    String[] nameArr = StringUtils.splitByWholeSeparator(name, "/");
+                    for(int j = 0 ;j<nameArr.length;j++){
+                        if(HanZi.STROKE_NAMES.get(nameArr[j])==null){
+                            logger.warning(String.format("%s part of %s not defined",nameArr[j],name));
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
