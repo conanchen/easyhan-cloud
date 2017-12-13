@@ -3,14 +3,13 @@ package org.ditto.easyhan.grpc;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import org.ditto.easyhan.model.Pinyin;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by mellychen on 2017/11/19.
  */
 
-@JsonPropertyOrder(value = {"word", "pinyins", "radical", "wuxing",
+@JsonPropertyOrder(value = {"word", "pinyin", "radical", "wuxing",
         "traditional", "wubi", "strokes", "strokenames", "strokes_count", "basemean", "detailmean", "terms", "riddles", "fanyi",
         "bishun","html"})
 public class WordBaidu {

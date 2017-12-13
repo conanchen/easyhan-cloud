@@ -132,20 +132,20 @@ public class WordDataImportRunner implements CommandLineRunner {
                     if (e != null) {
                         WordBaidu wordBaidu = new WordBaidu();
                         wordBaidu.word = word;
-                        wordBaidu.pinyins = tone_py(doc);
-                        wordBaidu.radical = radical(doc);
-                        wordBaidu.wuxing = wuxing(doc);
-                        wordBaidu.traditional = traditional(doc);
-                        wordBaidu.wubi = wubi(doc);
-                        wordBaidu.strokes = strokes(doc);
-                        wordBaidu.strokenames = strokenames(doc);
+                        wordBaidu.pinyins = BaiduHanZiUtil.tone_py(doc);
+                        wordBaidu.radical = BaiduHanZiUtil.radical(doc);
+                        wordBaidu.wuxing = BaiduHanZiUtil.wuxing(doc);
+                        wordBaidu.traditional = BaiduHanZiUtil.traditional(doc);
+                        wordBaidu.wubi = BaiduHanZiUtil.wubi(doc);
+                        wordBaidu.strokes = BaiduHanZiUtil.strokes(doc);
+                        wordBaidu.strokenames = BaiduHanZiUtil.strokenames(doc);
                         wordBaidu.strokes_count = wordBaidu.strokenames.size();
-                        wordBaidu.basemean = basemean(doc);
-                        wordBaidu.detailmean = detailmean(doc);
-                        wordBaidu.terms = term(doc);
-                        wordBaidu.riddles = riddle(doc);
-                        wordBaidu.fanyi = fanyi(doc);
-                        wordBaidu.bishun = word_bishun(doc);
+                        wordBaidu.basemean = BaiduHanZiUtil.basemean(doc);
+                        wordBaidu.detailmean = BaiduHanZiUtil.detailmean(doc);
+                        wordBaidu.terms = BaiduHanZiUtil.term(doc);
+                        wordBaidu.riddles = BaiduHanZiUtil.riddle(doc);
+                        wordBaidu.fanyi = BaiduHanZiUtil.fanyi(doc);
+                        wordBaidu.bishun = BaiduHanZiUtil.word_bishun(doc);
                         wordBaidu.html = html;
                         wordRepository.save(word, Word
                                 .builder()
@@ -187,132 +187,6 @@ public class WordDataImportRunner implements CommandLineRunner {
         }
     }
 
-    private List<Pinyin> tone_py(Document doc) {
-        List<Pinyin> result = new ArrayList<>();
-        try {
-            Element e = doc.getElementById("pinyin");
-            Elements spans = e.getElementsByTag("span");
-            for (int i = 0; spans != null && i < spans.size(); i++) {
-                try {
-                    String pinyin = spans.get(i).getElementsByTag("b").get(0).childNode(0).outerHtml();
-                    String mp3 = spans.get(i).getElementsByTag("a").get(0).attr("url");
-                    result.add(new Pinyin(pinyin, mp3));
-                } catch (Exception e1) {
-                    e1.printStackTrace();
-                } finally {
-
-                }
-            }
-//            logger.info(String.format("pinyins=%s", gson.toJson(result)));
-        } catch (Exception e) {
-//            e.printStackTrace();
-        } finally {
-
-        }
-
-        return result;
-    }
-
-    private String radical(Document doc) {
-        String result = "";
-        try {
-            result = doc.getElementById("radical").child(1).html();
-//            logger.info(String.format("radical=%s", result));
-        } catch (Exception e) {
-//            e.printStackTrace();
-        } finally {
-
-        }
-        return result;
-    }
-
-
-    private String wuxing(Document doc) {
-        String result = "";
-        try {
-            result = doc.getElementById("wuxing").child(1).html();
-//            logger.info(String.format("wuxing=%s", result));
-        } catch (Exception e) {
-//            e.printStackTrace();
-        } finally {
-
-        }
-        return result;
-    }
-
-    private String traditional(Document doc) {
-        String result = "";
-        try {
-            result = doc.getElementById("traditional").child(1).html();
-//            logger.info(String.format("traditional=%s", result));
-        } catch (Exception e) {
-//            e.printStackTrace();
-        } finally {
-
-        }
-        return result;
-    }
-
-
-    private String wubi(Document doc) {
-        String result = "";
-        try {
-            result = doc.getElementById("wubi").child(1).html();
-//            logger.info(String.format("wubi=%s", result));
-        } catch (Exception e) {
-//            e.printStackTrace();
-        } finally {
-
-        }
-        return result;
-    }
-
-
-    private List<String> strokes(Document doc) {
-        List<String> result = new ArrayList<>();
-        try {
-            String strokes = doc.getElementsMatchingOwnText("笔顺 ：").get(0).parent().childNode(1).outerHtml();
-//            String strokes = doc.getElementById("strokenames").childNode(1).outerHtml();
-            String[] strokeArr = StringUtils.splitByWholeSeparator(StringUtils.remove(strokes, "&nbsp;").trim(), " ");
-            for (int j = 0; j < strokeArr.length; j++) {
-                if (StringUtils.isNotEmpty(strokeArr[j])) {
-                    result.add(StringUtils.trim(strokeArr[j]));
-                }
-            }
-//            logger.info(String.format("strokes=%s", gson.toJson(result)));
-        } catch (Exception e) {
-//            e.printStackTrace();
-        } finally {
-
-        }
-
-        return result;
-    }
-
-
-    private List<String> strokenames(Document doc) {
-        List<String> result = new ArrayList<>();
-        try {
-            String strokes = doc.getElementById("stroke").childNode(1).outerHtml();
-            String[] strokenameArr = StringUtils.splitByWholeSeparator(StringUtils.remove(strokes, "\u00a0 ").trim(), "、");
-            for (int j = 0; j < strokenameArr.length; j++) {
-                String s = StringUtils.trim(strokenameArr[j]);
-                if (StringUtils.isNotEmpty(s)) {
-                    result.add(s);
-                    if (!isValidStrokeName(s)) {
-                        logger.warning(String.format("unknown strokename=%s", s));
-                    }
-                }
-            }
-//            logger.info(String.format("strokenames=%s", gson.toJson(result)));
-        } catch (Exception e) {
-//            e.printStackTrace();
-        } finally {
-
-        }
-
-        return result;
-    }
 
     private boolean isValidStrokeName(String s) {
         boolean valid = false;
@@ -331,96 +205,6 @@ public class WordDataImportRunner implements CommandLineRunner {
     }
 
 
-    private String basemean(Document doc) {
-        String result = "";
-        try {
-            result = doc.getElementById("base-mean").html();
-//            logger.info(String.format("basemean=%s", result));
-        } catch (Exception e) {
-//            e.printStackTrace();
-        } finally {
-
-        }
-        return result;
-    }
-
-
-    private String detailmean(Document doc) {
-        String result = "";
-        try {
-            result = doc.getElementById("detail-mean").html();
-//            logger.info(String.format("detailmean=%s", result));
-        } catch (Exception e) {
-//            e.printStackTrace();
-        } finally {
-
-        }
-        return result;
-    }
-
-
-    private List<String> term(Document doc) {
-        List<String> result = new ArrayList<>();
-        try {
-            Elements elements = doc.getElementById("term").getElementsByTag("a");
-            for (int i = 0; elements != null && i < elements.size(); i++) {
-                result.add(elements.get(i).html());
-            }
-//            logger.info(String.format("term=%s", gson.toJson(result)));
-        } catch (Exception e) {
-//            e.printStackTrace();
-        } finally {
-
-        }
-        return result;
-    }
-
-
-    private List<String> riddle(Document doc) {
-        List<String> result = new ArrayList<>();
-        try {
-            Elements elements = doc.getElementById("riddle-wrapper").getElementsByTag("p");
-            for (int i = 0; elements != null && i < elements.size(); i++) {
-                result.add(elements.get(i).html());
-            }
-//            logger.info(String.format("riddle=%s", gson.toJson(result)));
-        } catch (Exception e) {
-//            e.printStackTrace();
-        } finally {
-
-        }
-
-        return result;
-    }
-
-    private String fanyi(Document doc) {
-        String result = "";
-        try {
-            result = doc.getElementById("fanyi-wrapper").getElementsByTag("p").get(0).html();
-//            logger.info(String.format("fanyi=%s", result));
-        } catch (Exception e) {
-//            e.printStackTrace();
-        } finally {
-
-        }
-
-        return result;
-    }
-
-
-    private String word_bishun(Document doc) {
-        String result = "";
-        try {
-            result = doc.getElementById("word_bishun").attr("data-src");
-//            logger.info(String.format("word_bishun=%s", result));
-        } catch (Exception e) {
-//            e.printStackTrace();
-        } finally {
-
-        }
-
-        return result;
-    }
 
     private void checkStrokeDefinitions() {
         Iterator<String> nameIterator = HanZi.STROKE_NAMES.keySet().iterator();
