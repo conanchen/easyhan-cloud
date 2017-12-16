@@ -2,26 +2,38 @@
 <div id="search-bar">
     <div class="wrapper">
         <div class="c-container module" id="bar">
-            <div class="c-row fl-row">
-                <a class="dict-logo" href="/zici"></a>
-                <div class="c-span10 search-input-frame">
-                    <form name="f" id="form" action="/s" class="fm">
-                        <input class="c-input search-box" name="wd" id="kw" value="𩾌" maxlength="40" autocomplete="off">
-                        <input name="from" value="poem" type="hidden">
-                        <img class="search-icon" src="/static/asset/img_wise/search.png">
-                        <img class="input-clear" src="/static/asset/img_wise/input-clear.png">
-                    </form>
+                <div class="icon-font-header-left">
+                    <a href="/" class="iconfont-header icon-gerenzhongxin"></a>
                 </div>
-                <div class="c-span2 search-bar-btn">取消</div>
-                <a class="c-span1 user-center-bar" href="/personal">
-                                        <li class="iconfont-addition icon-gerenzhongxin"></li>
-                                    </a>
-            </div>
-        </div>
+                <div class="font-hanyu">百度汉语</div>
+                <div class="icon-font-header-right">
+                    <a href="/personal">
+                                                <span class="iconfont-header icon-gerenzhongxin"></span>
+                                            </a>
+                </div>
+                <div class="icon-font-header-right">
+                    <span name="wd" id="ke" class="iconfont-header icon-gerenzhongxin"></span>
+                </div>
 
+            <div id="search-place" class="search-input-frame" style="display:none">
+                <div class="frame-wrapper">
+                    <div class="wrapper-left">
+                        <div class="search-btn">
+                            <img class="search-icon" src="/static/asset/img_wise/search.png">
+                        </div>
+                        <form name="f" id="form" action="/s" class="fm" style="flex:1">
+                            <input name="wd" id="kw" class="iconfont-header icon-gerenzhongxin" maxlength="40" value="𩾌">
+                            <input name="from" value="poem" type="hidden">
+                        </form>
+                    </div>
+                    <div class="wrapper-right"><img class="input-clear" src="/static/asset/img_wise/input-clear.png"></div>
+                </div>
+            </div>
+            <div class="c-span2 search-bar-btn">取消</div>
+        </div>
         <!--sugs-->
         <div class="suggest-div flat">
-            <div class="suggest-direct" style="">
+            <div class="suggest-direct">
                 <div class="search-suggestion-title">热搜</div>
                 <div class="search-suggestion" style="">
                                         <a href="/s?wd=李白的诗">李白的诗</a>
@@ -73,7 +85,7 @@
     </div>-->
 
     
-<div id="zici-list-body" class="zici-list-body"><!-- 字词 --><section class="content module zici-item-list"><div class="zici-item-list-body" data-target="idiom"><div class="tag-empty-tips">抱歉：汉语中没有收录“ <em>𩾌</em> ”有关的结果。</div></div></section></div></div><div class="feed-back-dialog"><div class="dialog-div"><div class="title-div"><span>选择报错的内容</span><div class="feed-back-close">&nbsp;&nbsp;</div></div><div class="content-div"><div class="feed-back-item"><label><input name="feed_back_item" checked="checked" type="radio" value="0">&nbsp;这条结果不相关</label><br><label><input name="feed_back_item" type="radio" value="2">&nbsp;这条结果不是成语</label><br><label><input name="feed_back_item" type="radio" value="1">&nbsp;其它</label></div><textarea id="feed-back-content" rows="3" maxlength="40" placeholder="输入报错内容(最多40个字--必填)"></textarea><div class="c-row"><div class="c-span3"><img width="100%" src="/static/asset/img_wise/icon_activity_xiong.png"></div><div class="c-span9" style="font-size: 11px;padding: 0px;"><div>我们每月会抽取30名高质量报错用户，送出限量版【百度熊积木】一份。请留下你的有效联系方式，方便我们邮寄奖品：</div><div style="width: 100%;margin-top: 5px;"><input style="border: 1px solid #c0c0c0;width: 100%;" type="text" id="user-contact" placeholder="QQ或电话号码(非必填)"></div></div></div><div class="submit-div"><div class="feed-back-submit">提交</div></div></div></div></div><div id="feed_back_tips" style="position: fixed; bottom: 30px;text-align: center;width: 100%;display: none;"><span style="margin: 0 auto;border-radius: 3px;background: rgba(0,0,0,0.5);color: white;padding: 10px;">谢谢你的反馈</span></div>
+<div class="float-model"><div class="tig-msg">为您找到&nbsp;“&nbsp;𩾌&nbsp;”&nbsp;</div></div><div id="zici-list-body" class="zici-list-body"><!-- 字词 --><section class="content module zici-item-list"><div class="zici-item-list-body" data-target="idiom"><div class="tag-empty-tips">抱歉：汉语中没有收录“ <em>𩾌</em> ”有关的结果。</div></div></section></div></div><div class="feed-back-dialog"><div class="dialog-div"><div class="title-div"><span>选择报错的内容</span><div class="feed-back-close">&nbsp;&nbsp;</div></div><div class="content-div"><div class="feed-back-item"><label><input name="feed_back_item" checked="checked" type="radio" value="0">&nbsp;这条结果不相关</label><br><label><input name="feed_back_item" type="radio" value="2">&nbsp;这条结果不是成语</label><br><label><input name="feed_back_item" type="radio" value="1">&nbsp;其它</label></div><textarea id="feed-back-content" rows="3" maxlength="40" placeholder="输入报错内容(最多40个字--必填)"></textarea><div class="c-row"><div class="c-span3"><img width="100%" src="/static/asset/img_wise/icon_activity_xiong.png"></div><div class="c-span9" style="font-size: 11px;padding: 0px;"><div>我们每月会抽取30名高质量报错用户，送出限量版【百度熊积木】一份。请留下你的有效联系方式，方便我们邮寄奖品：</div><div style="width: 100%;margin-top: 5px;"><input style="border: 1px solid #c0c0c0;width: 100%;" type="text" id="user-contact" placeholder="QQ或电话号码(非必填)"></div></div></div><div class="submit-div"><div class="feed-back-submit">提交</div></div></div></div></div><div id="feed_back_tips" style="position: fixed; bottom: 30px;text-align: center;width: 100%;display: none;"><span style="margin: 0 auto;border-radius: 3px;background: rgba(0,0,0,0.5);color: white;padding: 10px;">谢谢你的反馈</span></div>
 
 
 
@@ -172,4 +184,4 @@
 -->
 
 
-<script> var _trace_page_logid = 1125400002; </script></body>
+<script> var _trace_page_logid = 0967565899; </script></body>
