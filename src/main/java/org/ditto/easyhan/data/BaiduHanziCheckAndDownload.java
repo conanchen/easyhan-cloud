@@ -24,6 +24,7 @@ public class BaiduHanziCheckAndDownload {
 //        checkFiles();
 //        exerciseCodePoint();
 //        checkAllBaiduFiles();
+
 //        downloadPinyinsMp3(HanZi.LEVEL1);
 //        downloadPinyinsMp3(HanZi.LEVEL2);
 //        downloadPinyinsMp3(HanZi.LEVEL3);
@@ -34,16 +35,13 @@ public class BaiduHanziCheckAndDownload {
     }
 
     private static void checkAllBaiduFiles() {
-        String[] words1 = StringUtils.splitByWholeSeparator(HanZi.LEVEL1, ",");
-        String[] words2 = StringUtils.splitByWholeSeparator(HanZi.LEVEL2, ",");
-        String[] words3 = StringUtils.splitByWholeSeparator(HanZi.LEVEL3, ",");
         int start1Idx = 1;
-        int start2Idx = words1.length + 1;
-        int start3Idx = words1.length + words2.length + 1;
+        int start2Idx = HanZi.LEVEL1.length + 1;
+        int start3Idx = HanZi.LEVEL1.length + HanZi.LEVEL2.length + 1;
 
-        checkBaiduWordFiles(words1, start1Idx);
-        checkBaiduWordFiles(words2, start2Idx);
-        checkBaiduWordFiles(words3, start3Idx);
+        checkBaiduWordFiles(HanZi.LEVEL1, start1Idx);
+        checkBaiduWordFiles(HanZi.LEVEL2, start2Idx);
+        checkBaiduWordFiles(HanZi.LEVEL3, start3Idx);
     }
 
     private static void exerciseCodePoint() {
@@ -115,7 +113,7 @@ public class BaiduHanziCheckAndDownload {
                         String html_ = FileUtils.readFileToString(new File(fn_), StandardCharsets.UTF_8);
                         System.out.println(String.format("✕ %d 百度没收录汉字=%s manually defined fn_=%s", i + startIdx,
                                 words[i],
-                                fn));
+                                fn_));
                     } catch (FileNotFoundException fe_) {
                         try {
                             FileUtils.writeStringToFile(new File(fn_), html, StandardCharsets.UTF_8);
@@ -135,8 +133,7 @@ public class BaiduHanziCheckAndDownload {
         }
     }
 
-    public static void downloadPinyinsMp3(String hanziWords) {
-        String[] words = StringUtils.splitByWholeSeparator(hanziWords, ",");
+    public static void downloadPinyinsMp3(String[] words) {
         Tika tika = new Tika();
         //Get file from resources folder
         for (int i = 0; i < words.length; i++) {
@@ -152,9 +149,7 @@ public class BaiduHanziCheckAndDownload {
                             Pinyin pinyin = pinyins.get(j);
                             if (StringUtils.isNotEmpty(pinyin.mp3)) {
                                 String fn = String.format
-                                        ("/Users/mellychen/hiask/easyhan-cloud/src/main/resources/pinyin/%x_%s",
-                                                words[i]
-                                                        .codePointAt(0),
+                                        ("/Users/mellychen/hiask/easyhan-cloud/src/main/resources/pinyin/%s",
                                                 StringUtils.substring(pinyin.mp3, pinyin.mp3.lastIndexOf('/') + 1));
                                 File mp3File = new File(fn);
                                 if (!mp3File.exists()) {
@@ -163,33 +158,40 @@ public class BaiduHanziCheckAndDownload {
                                         System.out.println(String.format("ok download mp3 %04d: %s as %s", i, pinyin
                                                 .mp3, fn));
                                     } catch (IOException e1) {
-                                        System.out.println(String.format("fail download mp3 %04d: %s", i, pinyin.mp3));
+                                        System.out.println(String.format("fail download mp3 %04d: codepoint=%x %s %s",
+                                                i, words[i].codePointAt(0), words[i], pinyin.mp3));
                                     }
                                 } else {
                                     String type = tika.detect(mp3File);
                                     if (!"audio/mpeg".equals(type)) {
                                         try {
                                             FileUtils.copyURLToFile(new URL(pinyin.mp3), mp3File, 20000, 30000);
-                                            System.out.println(String.format("ok redownload mp3 %04d:%s  %s as %s", i,
-                                                    type, pinyin.mp3, fn));
+                                            System.out.println(String.format("ok redownload mp3 %04d:%s  %s as %s",
+                                                    i, type, pinyin.mp3, fn));
                                         } catch (IOException e1) {
-                                            System.out.println(String.format("fail redownload mp3 %04d:%s  %s", i, type,
-                                                    pinyin.mp3));
+                                            System.out.println(String.format("fail redownload mp3 %04d: codepoint=%x %s %s  %s",
+                                                    i, words[i].codePointAt(0), words[i], type, pinyin.mp3));
                                         }
                                     }
                                 }
+                            } else {
+                                System.out.println(String.format("not defined pinyins %04d: codepoint=%x %s", i,
+                                        words[i].codePointAt(0), words[i]));
                             }
                         }
+                    } else {
+                        System.out.println(String.format("not defined pinyins %04d: codepoint=%x %s", i, words[i].codePointAt(0), words[i]));
                     }
                 }
             } catch (IOException e) {
+                System.out.println(String.format("not defined pinyins %04d: codepoint=%x %s ",
+                        i, words[i].codePointAt(0), words[i]));
 
             }
         }
     }
 
-    public static void downloadBishun(String hanziWords) {
-        String[] words = StringUtils.splitByWholeSeparator(hanziWords, ",");
+    public static void downloadBishun(String[] words) {
         Tika tika = new Tika();
         //Get file from resources folder
         for (int i = 0; i < words.length; i++) {
@@ -203,38 +205,44 @@ public class BaiduHanziCheckAndDownload {
                     if (StringUtils.isNotEmpty(word_bishun)) {
                         String fn = String.format
                                 ("/Users/mellychen/hiask/easyhan-cloud/src/main/resources/bishun/%x_%s",
-                                        words[i]
-                                                .codePointAt(0),
+                                        words[i].codePointAt(0),
                                         StringUtils.substring(word_bishun, word_bishun.lastIndexOf('/') + 1));
                         File bishunFile = new File(fn);
                         if (!bishunFile.exists()) {
 
                             try {
                                 FileUtils.copyURLToFile(new URL(word_bishun), bishunFile, 20000, 30000);
-                                System.out.println(String.format("ok download word_bishun %04d: %s as %s", i,
-                                        word_bishun,
-                                        fn));
+                                System.out.println(String.format("ok download word_bishun %04d: %s as %s",
+                                        i, word_bishun, fn));
                             } catch (IOException e1) {
-                                System.out.println(String.format("fail download word_bishun %04d: %s", i, word_bishun));
+                                System.out.println(String.format("fail download word_bishun %04d: codepoint=%x %s %s",
+                                        i, words[i].codePointAt(0), words[i], word_bishun));
                             }
                         } else {
                             String type = tika.detect(bishunFile);
                             if (!"image/gif".equals(type)) {
                                 try {
                                     FileUtils.copyURLToFile(new URL(word_bishun), bishunFile, 20000, 30000);
-                                    System.out.println(String.format("ok redownload word_bishun %04d: %s as %s", i,
-                                            word_bishun,
-                                            fn));
+                                    System.out.println(String.format("ok redownload word_bishun %04d: %s as %s",
+                                            i, word_bishun, fn));
                                 } catch (IOException e1) {
-                                    System.out.println(String.format("fail redownload word_bishun %04d: %s", i,
+                                    System.out.println(String.format("fail redownload word_bishun %04d: codepoint=%x %s %s",
+                                            i, words[i].codePointAt(0), words[i],
                                             word_bishun));
                                 }
                             }
                         }
+                    } else {
+                        System.out.println(String.format("not defined word_bishun %04d: %s codepoint=%x", i,
+                                words[i], words[i].codePointAt(0)));
                     }
+                } else {
+                    System.out.println(String.format("not defined word_bishun %04d: %s codepoint=%x", i,
+                            words[i], words[i].codePointAt(0)));
                 }
             } catch (IOException e) {
-
+                System.out.println(String.format("not defined word_bishun %04d: %s codepoint=%x", i,
+                        words[i], words[i].codePointAt(0)));
             }
         }
     }

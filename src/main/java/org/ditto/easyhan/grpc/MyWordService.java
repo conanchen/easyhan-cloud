@@ -42,6 +42,7 @@ public class MyWordService extends MyWordGrpc.MyWordImplBase {
                         .newBuilder()
                         .setWord(userWord.getWord())
                         .setMemIdx(userWord.getMemIdx())
+                        .setBrokenStrokesMessage(userWord.getBrokenStrokesMessage())
                         .setLastUpdated(userWord.getLastUpdated())
                         .build();
                 responseObserver.onNext(response);
@@ -80,6 +81,10 @@ public class MyWordService extends MyWordGrpc.MyWordImplBase {
                     .setLastUpdated(System.currentTimeMillis())
                     .build();
         }
+        if(request.getUpdateBrokenStrokesMessage()){
+            userWord.setBrokenStrokesMessage(request.getBrokenStrokesMessage());
+        }
+
         userWord = userWordRepository.save(userWordKey, userWord);
 
         UpsertResponse upsertResponse = UpsertResponse.newBuilder()

@@ -12,10 +12,7 @@ import org.ditto.easyhan.model.Word;
 import org.ditto.easyhan.repository.WordRepository;
 import org.easyhan.common.grpc.Error;
 import org.easyhan.common.grpc.StatusResponse;
-import org.easyhan.word.grpc.ListRequest;
-import org.easyhan.word.grpc.UpdateRequest;
-import org.easyhan.word.grpc.WordGrpc;
-import org.easyhan.word.grpc.WordResponse;
+import org.easyhan.word.grpc.*;
 import org.jetbrains.annotations.NotNull;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -48,35 +45,7 @@ public class WordService extends WordGrpc.WordImplBase {
         if (wordList != null) {
             logger.info(String.format("ListRequest request=[%s]\n send imageList.size()=%d", gson.toJson(request), wordList.size()));
             for (Word word : wordList) {
-                List<org.easyhan.word.grpc.Pinyin> pinyins = new ArrayList<>();
-                for (int i = 0; word.getPinyins() != null && i < word.getPinyins().size(); i++) {
-                    Pinyin py = word.getPinyins().get(i);
-                    pinyins.add(org.easyhan.word.grpc.Pinyin.newBuilder().setPinyin(py.pinyin).setMp3(py.mp3).build());
-                }
-                WordResponse response = WordResponse
-                        .newBuilder()
-                        .setWord(word.getWord())
-                        .setLevel(word.getLevel())
-                        .setLevelIdx(word.getLevelIdx())
-                        .setCreated(word.getCreated())
-                        .setLastUpdated(word.getLastUpdated())
-                        .setVistCount(word.getVisitCount())
-                        .addAllPinyins(pinyins)
-                        .setRadical(StringUtils.defaultIfEmpty(word.getRadical(), ""))
-                        .setWuxing(StringUtils.defaultIfEmpty(word.getWuxing(), ""))
-                        .setTraditional(StringUtils.defaultIfEmpty(word.getTraditional(), ""))
-                        .setWubi(StringUtils.defaultIfEmpty(word.getWubi(), ""))
-                        .addAllStrokes15(word.getStrokes() == null ? new ArrayList() : word.getStrokes())
-                        .addAllStrokenames(word.getStrokenames() == null ? new ArrayList() : word.getStrokenames())
-                        .setStrokesCount17(word.getStrokes_count())
-                        .setBasemean(StringUtils.defaultIfEmpty(word.getBasemean(), ""))
-                        .setDetailmean(StringUtils.defaultIfEmpty(word.getDetailmean(), ""))
-                        .addAllTerms(word.getTerms() == null ? new ArrayList<>() : word.getTerms())
-                        .addAllRiddles(word.getRiddles() == null ? new ArrayList<>() : word.getRiddles())
-                        .setFanyi(StringUtils.defaultIfEmpty(word.getFanyi(), ""))
-                        .setBishun(StringUtils.defaultIfEmpty(word.getBishun(), ""))
-                        .setDefined(BooleanUtils.toBooleanDefaultIfNull(word.getDefined(), false))
-                        .build();
+                WordResponse response = buildWordResponse(word);
                 responseObserver.onNext(response);
 
                 logger.info(String.format("send word=[%s]", gson.toJson(word)));
@@ -84,6 +53,51 @@ public class WordService extends WordGrpc.WordImplBase {
             responseObserver.onCompleted();
             logger.info(String.format("list end request=[%s]", gson.toJson(request)));
         }
+    }
+
+    @Override
+    public void get(GetRequest request, StreamObserver<WordResponse> responseObserver) {
+        logger.info(String.format("get start request=[%s]", gson.toJson(request)));
+        Word word = wordRepository.findOne(request.getWord());
+        if (word != null) {
+            logger.info(String.format("get request=[%s]\n send word=%s", gson.toJson(request), gson.toJson(word)));
+            WordResponse response = buildWordResponse(word);
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
+        }
+    }
+
+    @NotNull
+    private WordResponse buildWordResponse(Word word) {
+        List<org.easyhan.word.grpc.Pinyin> pinyins = new ArrayList<>();
+        for (int i = 0; word.getPinyins() != null && i < word.getPinyins().size(); i++) {
+            Pinyin py = word.getPinyins().get(i);
+            pinyins.add(org.easyhan.word.grpc.Pinyin.newBuilder().setPinyin(py.pinyin).setMp3(py.mp3).build());
+        }
+        return WordResponse
+                .newBuilder()
+                .setWord(word.getWord())
+                .setLevel(word.getLevel())
+                .setLevelIdx(word.getLevelIdx())
+                .setCreated(word.getCreated())
+                .setLastUpdated(word.getLastUpdated())
+                .setVistCount(word.getVisitCount())
+                .addAllPinyins(pinyins)
+                .setRadical(StringUtils.defaultIfEmpty(word.getRadical(), ""))
+                .setWuxing(StringUtils.defaultIfEmpty(word.getWuxing(), ""))
+                .setTraditional(StringUtils.defaultIfEmpty(word.getTraditional(), ""))
+                .setWubi(StringUtils.defaultIfEmpty(word.getWubi(), ""))
+                .addAllStrokes15(word.getStrokes() == null ? new ArrayList() : word.getStrokes())
+                .addAllStrokenames(word.getStrokenames() == null ? new ArrayList() : word.getStrokenames())
+                .setStrokesCount17(word.getStrokes_count())
+                .setBasemean(StringUtils.defaultIfEmpty(word.getBasemean(), ""))
+                .setDetailmean(StringUtils.defaultIfEmpty(word.getDetailmean(), ""))
+                .addAllTerms(word.getTerms() == null ? new ArrayList<>() : word.getTerms())
+                .addAllRiddles(word.getRiddles() == null ? new ArrayList<>() : word.getRiddles())
+                .setFanyi(StringUtils.defaultIfEmpty(word.getFanyi(), ""))
+                .setBishun(StringUtils.defaultIfEmpty(word.getBishun(), ""))
+                .setDefined(BooleanUtils.toBooleanDefaultIfNull(word.getDefined(), false))
+                .build();
     }
 
     @Override
@@ -103,7 +117,8 @@ public class WordService extends WordGrpc.WordImplBase {
                             .build())
                     .build();
             responseObserver.onNext(statusResponse);
-            logger.info(String.format("update end save file=%s ,statusResponse=%s", fn,
+            logger.info(String.format("save html %s:%x file=%s", request.getWord(), request.getWord()
+                            .codePointAt(0), fn,
                     gson.toJson(statusResponse)));
         } catch (JsonProcessingException e) {
             e.printStackTrace();

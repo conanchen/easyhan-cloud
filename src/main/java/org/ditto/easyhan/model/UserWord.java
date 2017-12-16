@@ -19,6 +19,8 @@ public class UserWord implements Serializable {
     @QuerySqlField(index = true)
     private int memIdx;
     @QuerySqlField
+    private String brokenStrokesMessage;
+    @QuerySqlField
     private long created;
     @QuerySqlField(index = true)
     private long lastUpdated;
@@ -26,10 +28,11 @@ public class UserWord implements Serializable {
     public UserWord() {
     }
 
-    private UserWord(String userId, String word, int memIdx, long created, long lastUpdated) {
+    private UserWord(String userId, String word, int memIdx, String brokenStrokesMessage, long created, long lastUpdated) {
         this.userId = userId;
         this.word = word;
         this.memIdx = memIdx;
+        this.brokenStrokesMessage = brokenStrokesMessage;
         this.created = created;
         this.lastUpdated = lastUpdated;
     }
@@ -42,6 +45,7 @@ public class UserWord implements Serializable {
         private String userId;
         private String word;
         private int memIdx;
+        private String brokenStrokesMessage;
         private long created;
         private long lastUpdated;
 
@@ -61,7 +65,7 @@ public class UserWord implements Serializable {
             if (!missing.isEmpty()) {
                 throw new IllegalStateException("Missing required properties:" + missing);
             }
-            UserWord wordObj = new UserWord(userId, word, memIdx, created, lastUpdated);
+            UserWord wordObj = new UserWord(userId, word, memIdx,brokenStrokesMessage, created, lastUpdated);
             return wordObj;
         }
 
@@ -77,6 +81,11 @@ public class UserWord implements Serializable {
 
         public Builder setMemIdx(int memIdx) {
             this.memIdx = memIdx;
+            return this;
+        }
+
+        public Builder setBrokenStrokesMessage(String brokenStrokesMessage) {
+            this.brokenStrokesMessage = brokenStrokesMessage;
             return this;
         }
 
