@@ -99,7 +99,7 @@ public class MyWordGrpcServiceTests {
         });
 
         blockingStub.list(listRequest).hasNext();
-        UpsertResponse upsertResponse = blockingStub.upsert(UpsertRequest.newBuilder()
+        MyWordResponse upsertResponse = blockingStub.upsert(UpsertRequest.newBuilder()
                 .setWord("一")
                 .build());
 

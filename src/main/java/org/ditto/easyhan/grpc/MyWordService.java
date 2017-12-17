@@ -3,6 +3,7 @@ package org.ditto.easyhan.grpc;
 import com.google.gson.Gson;
 import io.grpc.stub.StreamObserver;
 import io.jsonwebtoken.Claims;
+import org.apache.commons.lang.StringUtils;
 import org.ditto.easyhan.model.UserWord;
 import org.ditto.easyhan.model.UserWordKey;
 import org.ditto.easyhan.repository.UserWordRepository;
@@ -31,7 +32,7 @@ public class MyWordService extends MyWordGrpc.MyWordImplBase {
         Claims claims = MyAuthInterceptor.USER_CLAIMS.get();
 
 
-        logger.info(String.format("list start claims.getIssuer()=%s, claims.getId()=%s, request=[%s]", claims.getIssuer(),claims.getId(), gson.toJson(request)));
+        logger.info(String.format("list start claims.getIssuer()=%s, claims.getId()=%s, request=[%s]", claims.getIssuer(), claims.getId(), gson.toJson(request)));
 
         List<UserWord> userWordList = userWordRepository.getAllBy(getUserIdForUserWord(claims), request.getLastUpdated(), new PageRequest(0, 100));
         if (userWordList != null) {
@@ -42,7 +43,7 @@ public class MyWordService extends MyWordGrpc.MyWordImplBase {
                         .newBuilder()
                         .setWord(userWord.getWord())
                         .setMemIdx(userWord.getMemIdx())
-                        .setMemStrokes(userWord.getMemStrokes())
+                        .setMemStrokes(StringUtils.isEmpty(userWord.getMemStrokes()) ? "" : userWord.getMemStrokes())
                         .setLastUpdated(userWord.getLastUpdated())
                         .build();
                 responseObserver.onNext(response);
@@ -54,16 +55,17 @@ public class MyWordService extends MyWordGrpc.MyWordImplBase {
         }
     }
 
-    private String getUserIdForUserWord(Claims claims){
-        return String.format("%s.%s",claims.getIssuer(),claims.getId());
+    private String getUserIdForUserWord(Claims claims) {
+        return String.format("%s.%s", claims.getIssuer(), claims.getId());
     }
+
     @Override
-    public void upsert(UpsertRequest request, StreamObserver<UpsertResponse> responseObserver) {
+    public void upsert(UpsertRequest request, StreamObserver<MyWordResponse> responseObserver) {
         // Access to identity.
         Claims claims = MyAuthInterceptor.USER_CLAIMS.get();
 
-
-        logger.info(String.format("upsert start claims.getIssuer()=%s, claims.getId()=%s, request=[%s]", claims.getIssuer(),claims.getId(), gson.toJson(request)));
+        logger.info(String.format("upsert start claims.getIssuer()=%s, claims.getId()=%s, request=[%s]",
+                claims.getIssuer(), claims.getId(), gson.toJson(request)));
 
         logger.info(String.format("upsert start request=[%s]", gson.toJson(request)));
         String userId = getUserIdForUserWord(claims);
@@ -81,20 +83,22 @@ public class MyWordService extends MyWordGrpc.MyWordImplBase {
                     .setLastUpdated(System.currentTimeMillis())
                     .build();
         }
-        if(request.getUpdateMemStrokes()){
+        if (request.getUpdateMemStrokes() && StringUtils.isNotEmpty(request.getMemStrokes())) {
             userWord.setMemStrokes(request.getMemStrokes());
         }
 
         userWord = userWordRepository.save(userWordKey, userWord);
 
-        UpsertResponse upsertResponse = UpsertResponse.newBuilder()
+        MyWordResponse myWordResponse = MyWordResponse.newBuilder()
                 .setError(Error.newBuilder().setCode("myword.upsert.ok").build())
+                .setWord(userWord.getWord())
+                .setMemStrokes(StringUtils.isEmpty(userWord.getMemStrokes()) ? "" : userWord.getMemStrokes())
                 .setMemIdx(userWord.getMemIdx())
+                .setLastUpdated(userWord.getLastUpdated())
                 .build();
-        responseObserver.onNext(upsertResponse);
-        logger.info(String.format("upsert send upsertResponse=[%s]", gson.toJson(upsertResponse)));
+        responseObserver.onNext(myWordResponse);
+        logger.info(String.format("upsert send myWordResponse=[%s]", gson.toJson(myWordResponse)));
         responseObserver.onCompleted();
-        logger.info(String.format("upsert end request=[%s]", gson.toJson(request)));
     }
 
     @Override
